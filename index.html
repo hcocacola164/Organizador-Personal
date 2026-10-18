@@ -10,14 +10,14 @@
     <div class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-6">
         <h1 class="text-2xl font-bold text-center text-indigo-600 mb-6">🏡 Mi Organizador</h1>
 
-        <!-- Navegación por Pestañas Principales con Emojis -->
+        <!-- Navegación por Pestañas Principales -->
         <div class="flex justify-between border-b pb-3 mb-4 text-sm font-semibold">
             <button id="tab-hija" onclick="setTab('hija')" class="text-indigo-600 border-b-2 border-indigo-600 pb-1 font-bold">👧 SUHAILA 💗</button>
             <button id="tab-casa" onclick="setTab('casa')" class="text-gray-400 pb-1">🏠 CASA</button>
             <button id="tab-recordatorios" onclick="setTab('recordatorios')" class="text-gray-400 pb-1">⏰ RECORDATORIOS 📝</button>
         </div>
 
-        <!-- Subcategorías con Emojis -->
+        <!-- Subcategorías -->
         <div id="subnav" class="flex gap-2 overflow-x-auto pb-2 mb-4"></div>
 
         <!-- Formulario para añadir ítem -->
@@ -91,7 +91,6 @@
 
         function limpiarTexto(str) {
             if (!str) return '';
-            // Función para comparar categorías ignorando emojis y espacios
             return String(str).replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim().toLowerCase();
         }
 
@@ -132,8 +131,11 @@
                 const isChecked = item[3] === true || item[3] === "true";
 
                 div.innerHTML = `
-                    <div class="${isChecked ? 'line-through text-gray-400' : 'text-gray-800'}">${texto}</div>
-                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleItem('${item[0]}', this.checked)" class="h-4 w-4 text-indigo-600 rounded">
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleItem('${item[0]}', this.checked)" class="h-4 w-4 text-indigo-600 rounded">
+                        <div class="${isChecked ? 'line-through text-gray-400' : 'text-gray-800'}">${texto}</div>
+                    </div>
+                    <button onclick="eliminarItem('${item[0]}')" class="text-red-400 hover:text-red-600 p-1 font-bold text-xs">🗑️</button>
                 `;
                 container.appendChild(div);
             });
@@ -210,6 +212,35 @@
                 sheet: sheetName,
                 id: id,
                 completed: completed
+            };
+
+            fetch(API_URL, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload) 
+            });
+        }
+
+        function eliminarItem(id) {
+            let sheetName = "Recordatorios";
+            if (tabActual === 'hija') sheetName = "SUHAILA";
+            if (tabActual === 'casa') sheetName = "CASA";
+
+            // Eliminar de la vista inmediatamente
+            if (tabActual === 'hija') {
+                datosGlobales.hija = datosGlobales.hija.filter(row => row[0] != id);
+            } else if (tabActual === 'casa') {
+                datosGlobales.casa = datosGlobales.casa.filter(row => row[0] != id);
+            } else {
+                datosGlobales.recordatorios = datosGlobales.recordatorios.filter(row => row[0] != id);
+            }
+            renderLista();
+
+            // Enviar orden de borrado a Google Sheets
+            const payload = {
+                action: 'delete',
+                sheet: sheetName,
+                id: id
             };
 
             fetch(API_URL, { 
