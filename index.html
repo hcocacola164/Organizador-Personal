@@ -39,7 +39,7 @@
     </div>
 
     <script>
-        // 👇 PEGA TU URL DE APPS SCRIPT ENTRE LAS COMILLAS
+        // 👇 PEGA TU URL DE APPS SCRIPT AQUÍ
         const API_URL = "https://script.google.com/macros/s/AKfycbyusACb-e4IIODnUklcfFn5Zv10zr51stxNMH2FyHJmdIWn_-X9gafIy_LvferLt_uDgg/exec"; 
 
         let cacheDatos = { suhaila: [], casa: [], recordatorios: [] };
@@ -104,17 +104,22 @@
                 const div = document.createElement('div');
                 div.className = "flex items-center justify-between p-3 bg-white border rounded-xl shadow-sm text-sm";
                 
-                let texto = item[2] || "";
-                if (tabActual === 'recordatorios') {
-                    let fechaF = item[4] ? new Date(item[4]).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : '';
-                    texto = `<div><span class="font-medium">🔔 ${item[2]}</span><br><span class="text-xs text-indigo-500">📅 ${fechaF}</span></div>`;
-                }
+                let texto = "";
+                let completado = false;
 
-                let completado = item[3] === true || item[3] === "true";
+                if (tabActual === 'recordatorios') {
+                    let titulo = item[1] || ""; // Columna B (Titulo)
+                    let fechaRaw = item[2];    // Columna C (FechaHora)
+                    let fechaF = fechaRaw ? new Date(fechaRaw).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+                    texto = `<div><span class="font-medium">🔔 ${titulo}</span><br><span class="text-xs text-indigo-500">📅 ${fechaF}</span></div>`;
+                } else {
+                    texto = `<span>📌 ${item[2] || ""}</span>`; // Columna C (Tarea)
+                    completado = item[3] === true || item[3] === "true"; // Columna D
+                }
 
                 div.innerHTML = `
                     <div class="flex items-center gap-3">
-                        <input type="checkbox" ${completado ? 'checked' : ''} onchange="toggleItem('${item[0]}', this.checked)" class="h-4 w-4 text-indigo-600 rounded">
+                        ${tabActual !== 'recordatorios' ? `<input type="checkbox" ${completado ? 'checked' : ''} onchange="toggleItem('${item[0]}', this.checked)" class="h-4 w-4 text-indigo-600 rounded">` : ''}
                         <div class="${completado ? 'line-through text-gray-400' : 'text-gray-800'}">${texto}</div>
                     </div>
                     <button onclick="eliminarItem('${item[0]}')" class="text-red-400 hover:text-red-600 p-1 font-bold text-xs">🗑️</button>
@@ -145,7 +150,7 @@
 
             const payload = {
                 action: 'add',
-                sheet: tabActual === 'suhaila' ? 'SUHAILA' : (tabActual === 'casa' ? 'CASA' : 'Recordatorios'),
+                sheet: tabActual,
                 category: subActual,
                 item: txt.value.trim(),
                 date: (tabActual === 'recordatorios' && date) ? date.value : ""
@@ -168,7 +173,6 @@
                 console.error("Error guardando:", err);
                 btn.innerText = "💾 Guardar";
                 btn.disabled = false;
-                cargarDatos();
             });
         }
 
@@ -176,7 +180,7 @@
             fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'toggle', sheet: tabActual === 'suhaila' ? 'SUHAILA' : (tabActual === 'casa' ? 'CASA' : 'Recordatorios'), id: id, completed: estado })
+                body: JSON.stringify({ action: 'toggle', sheet: tabActual, id: id, completed: estado })
             });
         }
 
@@ -189,7 +193,7 @@
             fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'delete', sheet: tabActual === 'suhaila' ? 'SUHAILA' : (tabActual === 'casa' ? 'CASA' : 'Recordatorios'), id: id })
+                body: JSON.stringify({ action: 'delete', sheet: tabActual, id: id })
             }).then(() => setTimeout(cargarDatos, 500));
         }
 
