@@ -12,9 +12,9 @@
 
         <!-- Navegación por Pestañas Principales -->
         <div class="flex justify-between border-b pb-3 mb-4 text-sm font-semibold">
-            <button id="tab-hija" onclick="setTab('hija')" class="text-indigo-600 border-b-2 border-indigo-600 pb-1 font-bold">SUHAILA👧🏼🩷</button>
-            <button id="tab-casa" onclick="setTab('casa')" class="text-gray-400 pb-1">CASA 🏠</button>
-            <button id="tab-recordatorios" onclick="setTab('recordatorios')" class="text-gray-400 pb-1">Recordatorios📝⏰</button>
+            <button onclick="setTab('suhaila')" id="btn-suhaila" class="text-indigo-600 border-b-2 border-indigo-600 pb-1 font-bold">SUHAILA👧🏼🩷</button>
+            <button onclick="setTab('casa')" id="btn-casa" class="text-gray-400 pb-1">CASA 🏠</button>
+            <button onclick="setTab('recordatorios')" id="btn-recordatorios" class="text-gray-400 pb-1">Recordatorios📝⏰</button>
         </div>
 
         <!-- Subcategorías -->
@@ -22,95 +22,80 @@
 
         <!-- Formulario para añadir ítem -->
         <div class="bg-gray-50 p-4 rounded-xl mb-6 shadow-inner">
-            <h2 class="text-xs font-bold text-gray-500 uppercase mb-2" id="form-title">➕ Añadir Tarea</h2>
+            <h2 class="text-xs font-bold text-gray-500 uppercase mb-2">➕ Añadir Tarea</h2>
             <div class="space-y-2">
                 <input type="text" id="input-item" placeholder="Escribe aquí..." class="w-full p-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <div id="datetime-container" class="hidden">
                     <input type="datetime-local" id="input-date" class="w-full p-2 border rounded-lg text-sm">
                 </div>
-                <button id="btn-guardar" type="button" onclick="agregarItem()" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold text-sm hover:bg-indigo-700">💾 Guardar</button>
+                <button onclick="agregarItem()" id="btn-guardar" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold text-sm hover:bg-indigo-700">💾 Guardar</button>
             </div>
         </div>
 
-        <!-- Lista de tareas/ítems -->
+        <!-- Lista de tareas -->
         <div id="lista-container" class="space-y-2">
             <p class="text-center text-gray-400 text-sm py-4">⏳ Cargando datos...</p>
         </div>
     </div>
 
     <script>
-        // PEGA TU URL DE APPS SCRIPT ENTRE LAS COMILLAS DE ABAJO
+        // 👇 PEGA TU URL DE APPS SCRIPT ENTRE LAS COMILLAS
         const API_URL = "https://script.google.com/macros/s/AKfycbyusACb-e4IIODnUklcfFn5Zv10zr51stxNMH2FyHJmdIWn_-X9gafIy_LvferLt_uDgg/exec"; 
 
-        let datosGlobales = { hija: [], casa: [], recordatorios: [] };
-        let tabActual = 'hija';
-        let subCategoriaActual = '🏫 Escuela';
+        let cacheDatos = { suhaila: [], casa: [], recordatorios: [] };
+        let tabActual = 'suhaila';
+        let subActual = 'Escuela';
 
-        const subCategorias = {
-            hija: ['🏫 Escuela', '💃 Baile', '🇬🇧 Inglés', '🎒 Necesidades'],
-            casa: ['🛒 Lista de la Compra', '🧹 Tareas'],
-            recordatorios: ['📌 General']
+        const subs = {
+            suhaila: ['Escuela', 'Baile', 'Inglés', 'Necesidades'],
+            casa: ['Lista de la Compra', 'Tareas'],
+            recordatorios: ['General']
         };
 
-        function setTab(tab) {
-            tabActual = tab;
-            subCategoriaActual = subCategorias[tab][0];
+        function setTab(t) {
+            tabActual = t;
+            subActual = subs[t][0];
 
-            ['hija', 'casa', 'recordatorios'].forEach(t => {
-                const el = document.getElementById(`tab-${t}`);
-                if (el) {
-                    if (t === tab) {
-                        el.className = "text-indigo-600 border-b-2 border-indigo-600 pb-1 font-bold";
-                    } else {
-                        el.className = "text-gray-400 pb-1 font-semibold";
-                    }
+            ['suhaila', 'casa', 'recordatorios'].forEach(tab => {
+                const el = document.getElementById(`btn-${tab}`);
+                if(tab === t) {
+                    el.className = "text-indigo-600 border-b-2 border-indigo-600 pb-1 font-bold";
+                } else {
+                    el.className = "text-gray-400 pb-1 font-semibold";
                 }
             });
 
-            const dtContainer = document.getElementById('datetime-container');
-            if (dtContainer) {
-                dtContainer.classList.toggle('hidden', tab !== 'recordatorios');
-            }
-
-            renderSubNav();
+            document.getElementById('datetime-container').classList.toggle('hidden', t !== 'recordatorios');
+            renderSubnav();
             renderLista();
         }
 
-        function renderSubNav() {
-            const container = document.getElementById('subnav');
-            if (!container) return;
-            container.innerHTML = '';
-            subCategorias[tabActual].forEach(sub => {
-                const btn = document.createElement('button');
-                btn.innerText = sub;
-                btn.className = `px-3 py-1 text-xs rounded-full whitespace-nowrap ${sub === subCategoriaActual ? 'bg-indigo-100 text-indigo-700 font-bold' : 'bg-gray-100 text-gray-500'}`;
-                btn.onclick = () => { subCategoriaActual = sub; renderSubNav(); renderLista(); };
-                container.appendChild(btn);
+        function renderSubnav() {
+            const nav = document.getElementById('subnav');
+            nav.innerHTML = '';
+            subs[tabActual].forEach(s => {
+                const b = document.createElement('button');
+                b.innerText = s;
+                b.className = `px-3 py-1 text-xs rounded-full whitespace-nowrap ${s === subActual ? 'bg-indigo-100 text-indigo-700 font-bold' : 'bg-gray-100 text-gray-500'}`;
+                b.onclick = () => { subActual = s; renderSubnav(); renderLista(); };
+                nav.appendChild(b);
             });
-        }
-
-        function limpiarTexto(str) {
-            if (!str) return '';
-            return String(str).replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim().toLowerCase();
         }
 
         function renderLista() {
             const container = document.getElementById('lista-container');
-            if (!container) return;
             container.innerHTML = '';
 
             let items = [];
-            const subLimpia = limpiarTexto(subCategoriaActual);
-
-            if (tabActual === 'hija') {
-                items = (datosGlobales.hija || []).filter(row => limpiarTexto(row[1]) === subLimpia);
+            if (tabActual === 'suhaila') {
+                items = (cacheDatos.suhaila || []).filter(r => String(r[1]).trim().toLowerCase() === subActual.trim().toLowerCase());
             } else if (tabActual === 'casa') {
-                items = (datosGlobales.casa || []).filter(row => limpiarTexto(row[1]) === subLimpia);
+                items = (cacheDatos.casa || []).filter(r => String(r[1]).trim().toLowerCase() === subActual.trim().toLowerCase());
             } else {
-                items = datosGlobales.recordatorios || [];
+                items = cacheDatos.recordatorios || [];
             }
 
-            if (!items || items.length === 0) {
+            if (items.length === 0) {
                 container.innerHTML = '<p class="text-center text-gray-400 text-sm py-4">✨ No hay elementos guardados.</p>';
                 return;
             }
@@ -119,28 +104,18 @@
                 const div = document.createElement('div');
                 div.className = "flex items-center justify-between p-3 bg-white border rounded-xl shadow-sm text-sm";
                 
-                let texto = item[2] || item[1] || "";
+                let texto = item[2] || "";
                 if (tabActual === 'recordatorios') {
-                    const fechaRaw = item[4] || item[2];
-                    let fechaFormat = "";
-                    if (fechaRaw) {
-                        try {
-                            fechaFormat = new Date(fechaRaw).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' });
-                        } catch(e) {
-                            fechaFormat = fechaRaw;
-                        }
-                    }
-                    texto = `<div><span class="font-medium">🔔 ${item[2] || item[1]}</span><br><span class="text-xs text-indigo-500">📅 ${fechaFormat}</span></div>`;
-                } else {
-                    texto = `<span>📌 ${texto}</span>`;
+                    let fechaF = item[4] ? new Date(item[4]).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+                    texto = `<div><span class="font-medium">🔔 ${item[2]}</span><br><span class="text-xs text-indigo-500">📅 ${fechaF}</span></div>`;
                 }
-                
-                const isChecked = item[3] === true || item[3] === "true";
+
+                let completado = item[3] === true || item[3] === "true";
 
                 div.innerHTML = `
                     <div class="flex items-center gap-3">
-                        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleItem('${item[0]}', this.checked)" class="h-4 w-4 text-indigo-600 rounded">
-                        <div class="${isChecked ? 'line-through text-gray-400' : 'text-gray-800'}">${texto}</div>
+                        <input type="checkbox" ${completado ? 'checked' : ''} onchange="toggleItem('${item[0]}', this.checked)" class="h-4 w-4 text-indigo-600 rounded">
+                        <div class="${completado ? 'line-through text-gray-400' : 'text-gray-800'}">${texto}</div>
                     </div>
                     <button onclick="eliminarItem('${item[0]}')" class="text-red-400 hover:text-red-600 p-1 font-bold text-xs">🗑️</button>
                 `;
@@ -149,116 +124,76 @@
         }
 
         function cargarDatos() {
-            if (!API_URL || API_URL.includes("PEGAR_AQUI")) {
-                document.getElementById('lista-container').innerHTML = '<p class="text-center text-red-500 text-sm py-4">⚠️ Por favor, añade tu URL de Apps Script.</p>';
-                return;
-            }
-
             fetch(API_URL + "?action=getData")
-                .then(res => res.json())
+                .then(r => r.json())
                 .then(data => {
-                    datosGlobales = data;
+                    cacheDatos = data;
                     renderLista();
                 })
-                .catch(err => {
-                    console.error("Error al cargar datos:", err);
-                    document.getElementById('lista-container').innerHTML = '<p class="text-center text-red-400 text-sm py-4">❌ Error al conectar con Google Sheets.</p>';
-                });
+                .catch(err => console.error("Error cargando:", err));
         }
 
         function agregarItem() {
-            const input = document.getElementById('input-item');
-            const dateInput = document.getElementById('input-date');
+            const txt = document.getElementById('input-item');
+            const date = document.getElementById('input-date');
             const btn = document.getElementById('btn-guardar');
 
-            if (!input.value.trim()) return;
+            if (!txt.value.trim()) return;
 
             btn.innerText = "⏳ Guardando...";
             btn.disabled = true;
 
-            let sheetName = "Recordatorios";
-            if (tabActual === 'hija') sheetName = "SUHAILA";
-            if (tabActual === 'casa') sheetName = "CASA";
-
             const payload = {
                 action: 'add',
-                sheet: sheetName,
-                category: subCategoriaActual,
-                item: input.value.trim(),
-                date: (tabActual === 'recordatorios' && dateInput) ? dateInput.value : ""
+                sheet: tabActual === 'suhaila' ? 'SUHAILA' : (tabActual === 'casa' ? 'CASA' : 'Recordatorios'),
+                category: subActual,
+                item: txt.value.trim(),
+                date: (tabActual === 'recordatorios' && date) ? date.value : ""
             };
 
-            fetch(API_URL, { 
-                method: 'POST', 
+            fetch(API_URL, {
+                method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload) 
+                body: JSON.stringify(payload)
             })
-            .then(res => res.json())
-            .then(data => {
-                input.value = '';
-                if(dateInput) dateInput.value = '';
+            .then(r => r.json())
+            .then(res => {
+                txt.value = '';
+                if(date) date.value = '';
                 btn.innerText = "💾 Guardar";
                 btn.disabled = false;
                 cargarDatos();
             })
             .catch(err => {
-                console.error("Error al guardar:", err);
+                console.error("Error guardando:", err);
                 btn.innerText = "💾 Guardar";
                 btn.disabled = false;
-                setTimeout(cargarDatos, 1000);
+                cargarDatos();
             });
         }
 
-        function toggleItem(id, completed) {
-            let sheetName = "Recordatorios";
-            if (tabActual === 'hija') sheetName = "SUHAILA";
-            if (tabActual === 'casa') sheetName = "CASA";
-
-            const payload = {
-                action: 'toggle',
-                sheet: sheetName,
-                id: id,
-                completed: completed
-            };
-
-            fetch(API_URL, { 
-                method: 'POST', 
+        function toggleItem(id, estado) {
+            fetch(API_URL, {
+                method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload) 
+                body: JSON.stringify({ action: 'toggle', sheet: tabActual === 'suhaila' ? 'SUHAILA' : (tabActual === 'casa' ? 'CASA' : 'Recordatorios'), id: id, completed: estado })
             });
         }
 
         function eliminarItem(id) {
-            let sheetName = "Recordatorios";
-            if (tabActual === 'hija') sheetName = "SUHAILA";
-            if (tabActual === 'casa') sheetName = "CASA";
-
-            if (tabActual === 'hija') {
-                datosGlobales.hija = datosGlobales.hija.filter(row => String(row[0]) !== String(id));
-            } else if (tabActual === 'casa') {
-                datosGlobales.casa = datosGlobales.casa.filter(row => String(row[0]) !== String(id));
-            } else {
-                datosGlobales.recordatorios = datosGlobales.recordatorios.filter(row => String(row[0]) !== String(id));
-            }
+            if(tabActual === 'suhaila') cacheDatos.suhaila = cacheDatos.suhaila.filter(r => String(r[0]) !== String(id));
+            if(tabActual === 'casa') cacheDatos.casa = cacheDatos.casa.filter(r => String(r[0]) !== String(id));
+            if(tabActual === 'recordatorios') cacheDatos.recordatorios = cacheDatos.recordatorios.filter(r => String(r[0]) !== String(id));
             renderLista();
 
-            const payload = {
-                action: 'delete',
-                sheet: sheetName,
-                id: id
-            };
-
-            fetch(API_URL, { 
-                method: 'POST', 
+            fetch(API_URL, {
+                method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload) 
-            })
-            .then(() => {
-                setTimeout(cargarDatos, 800);
-            });
+                body: JSON.stringify({ action: 'delete', sheet: tabActual === 'suhaila' ? 'SUHAILA' : (tabActual === 'casa' ? 'CASA' : 'Recordatorios'), id: id })
+            }).then(() => setTimeout(cargarDatos, 500));
         }
 
-        renderSubNav();
+        setTab('suhaila');
         cargarDatos();
     </script>
 </body>
