@@ -12,9 +12,9 @@
 
         <!-- Navegación por Pestañas Principales -->
         <div class="flex justify-between border-b pb-3 mb-4 text-sm font-semibold">
-            <button id="tab-hija" onclick="setTab('hija')" class="text-indigo-600 border-b-2 border-indigo-600 pb-1 font-bold">👧 SUHAILA 💗</button>
-            <button id="tab-casa" onclick="setTab('casa')" class="text-gray-400 pb-1">🏠 CASA</button>
-            <button id="tab-recordatorios" onclick="setTab('recordatorios')" class="text-gray-400 pb-1">⏰ RECORDATORIOS 📝</button>
+            <button id="tab-hija" onclick="setTab('hija')" class="text-indigo-600 border-b-2 border-indigo-600 pb-1 font-bold">SUHAILA👧🏼🩷</button>
+            <button id="tab-casa" onclick="setTab('casa')" class="text-gray-400 pb-1">CASA 🏠</button>
+            <button id="tab-recordatorios" onclick="setTab('recordatorios')" class="text-gray-400 pb-1">Recordatorios📝⏰</button>
         </div>
 
         <!-- Subcategorías -->
@@ -226,17 +226,15 @@
             if (tabActual === 'hija') sheetName = "SUHAILA";
             if (tabActual === 'casa') sheetName = "CASA";
 
-            // Eliminar de la vista inmediatamente
             if (tabActual === 'hija') {
-                datosGlobales.hija = datosGlobales.hija.filter(row => row[0] != id);
+                datosGlobales.hija = datosGlobales.hija.filter(row => String(row[0]) !== String(id));
             } else if (tabActual === 'casa') {
-                datosGlobales.casa = datosGlobales.casa.filter(row => row[0] != id);
+                datosGlobales.casa = datosGlobales.casa.filter(row => String(row[0]) !== String(id));
             } else {
-                datosGlobales.recordatorios = datosGlobales.recordatorios.filter(row => row[0] != id);
+                datosGlobales.recordatorios = datosGlobales.recordatorios.filter(row => String(row[0]) !== String(id));
             }
             renderLista();
 
-            // Enviar orden de borrado a Google Sheets
             const payload = {
                 action: 'delete',
                 sheet: sheetName,
@@ -247,10 +245,12 @@
                 method: 'POST', 
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(payload) 
+            })
+            .then(() => {
+                setTimeout(cargarDatos, 800);
             });
         }
 
-        // Inicializar la app
         renderSubNav();
         cargarDatos();
     </script>
