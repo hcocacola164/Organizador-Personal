@@ -17,7 +17,7 @@
             <button id="tab-recordatorios" onclick="setTab('recordatorios')" class="text-gray-400 pb-1">RECORDATORIOS</button>
         </div>
 
-        <!-- Subcategorías (Se filtran según la pestaña principal) -->
+        <!-- Subcategorías -->
         <div id="subnav" class="flex gap-2 overflow-x-auto pb-2 mb-4"></div>
 
         <!-- Formulario para añadir ítem -->
@@ -28,7 +28,7 @@
                 <div id="datetime-container" class="hidden">
                     <input type="datetime-local" id="input-date" class="w-full p-2 border rounded-lg text-sm">
                 </div>
-                <button onclick="agregarItem()" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold text-sm hover:bg-indigo-700">Guardar</button>
+                <button id="btn-guardar" onclick="agregarItem()" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold text-sm hover:bg-indigo-700">Guardar</button>
             </div>
         </div>
 
@@ -39,7 +39,8 @@
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyusACb-e4IIODnUklcfFn5Zv10zr51stxNMH2FyHJmdIWn_-X9gafIy_LvferLt_uDgg/exec"; //
+        // PEGA TU URL DE APPS SCRIPT ENTRE LAS COMILLAS DE ABAJO
+        const API_URL = "https://script.google.com/macros/s/AKfycbyusACb-e4IIODnUklcfFn5Zv10zr51stxNMH2FyHJmdIWn_-X9gafIy_LvferLt_uDgg/exec"; 
 
         let datosGlobales = { hija: [], casa: [], recordatorios: [] };
         let tabActual = 'hija';
@@ -92,70 +93,4 @@
                 items = datosGlobales.casa.filter(row => row[1] === subCategoriaActual);
             } else {
                 items = datosGlobales.recordatorios;
-            }
-
-            if (items.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-400 text-sm py-4">No hay elementos guardados.</p>';
-                return;
-            }
-
-            items.forEach(item => {
-                const div = document.createElement('div');
-                div.className = "flex items-center justify-between p-3 bg-white border rounded-xl shadow-sm text-sm";
-                
-                const texto = tabActual === 'recordatorios' ? `${item[1]} <br><span class="text-xs text-indigo-500">${new Date(item[2]).toLocaleString()}</span>` : item[2];
-                
-                div.innerHTML = `
-                    <span class="${item[3] ? 'line-through text-gray-400' : 'text-gray-800'}">${texto}</span>
-                    <input type="checkbox" ${item[3] ? 'checked' : ''} onchange="toggleItem('${item[0]}', this.checked)" class="h-4 w-4 text-indigo-600 rounded">
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function cargarDatos() {
-            fetch(API_URL + "?action=getData")
-                .then(res => res.json())
-                .then(data => {
-                    datosGlobales = data;
-                    renderSubNav();
-                    renderLista();
-                });
-        }
-
-        function agregarItem() {
-            const input = document.getElementById('input-item');
-            const dateInput = document.getElementById('input-date');
-            if (!input.value) return;
-
-            const payload = {
-                action: 'add',
-                sheet: tabActual === 'hija' ? 'Hija' : (tabActual === 'casa' ? 'Casa' : 'Recordatorios'),
-                category: subCategoriaActual,
-                item: input.value,
-                date: dateInput.value
-            };
-
-            fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) })
-                .then(() => {
-                    input.value = '';
-                    dateInput.value = '';
-                    cargarDatos();
-                });
-        }
-
-        function toggleItem(id, completed) {
-            const payload = {
-                action: 'toggle',
-                sheet: tabActual === 'hija' ? 'Hija' : (tabActual === 'casa' ? 'Casa' : 'Recordatorios'),
-                id: id,
-                completed: completed
-            };
-            fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-        }
-
-        // Carga inicial
-        cargarDatos();
-    </script>
-</body>
-</html>
+            
