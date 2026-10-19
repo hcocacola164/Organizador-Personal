@@ -3,94 +3,161 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Organizador de Casa</title>
+  <title>JARVIS Command Center</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #f4f6f9;
-      --card-bg: #ffffff;
-      --primary: #4a90e2;
-      --accent: #2c3e50;
-      --danger: #e74c3c;
-      --success: #2ecc71;
+      --bg-gradient: radial-gradient(circle at 50% 10%, #0d1b2a 0%, #050811 100%);
+      --glass-bg: rgba(17, 24, 39, 0.75);
+      --glass-border: rgba(0, 242, 254, 0.2);
+      --primary: #00f2fe;
+      --secondary: #4facfe;
+      --accent: #9b51e0;
+      --danger: #ff4b5c;
+      --text-main: #f0f4f8;
+      --text-muted: #94a3b8;
     }
     
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg-color);
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
       margin: 0;
       padding: 20px;
-      color: #333;
+      color: var(--text-main);
+      min-height: 100vh;
     }
 
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
-      background: var(--card-bg);
-      padding: 15px 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      margin-bottom: 25px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      padding: 20px 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
 
-    h1 { margin: 0; font-size: 1.8rem; color: var(--accent); }
+    h1 { 
+      margin: 0; 
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.6rem; 
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+    }
+
+    #clock {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      color: var(--primary);
+      text-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+    }
 
     .tabs {
       display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
+      gap: 15px;
+      margin-bottom: 25px;
     }
 
     .tab-btn {
-      padding: 12px 24px;
-      font-size: 1.1rem;
-      border: none;
-      background: #e0e6ed;
-      border-radius: 8px;
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
       cursor: pointer;
-      font-weight: bold;
-      color: var(--accent);
-      transition: all 0.2s;
+      font-weight: 600;
+      color: var(--text-muted);
+      backdrop-filter: blur(8px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tab-btn:hover {
+      border-color: var(--primary);
+      color: var(--text-main);
     }
 
     .tab-btn.active {
-      background: var(--primary);
-      color: white;
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(79, 172, 254, 0.15));
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
     }
 
     .panel { display: none; }
-    .panel.active { display: block; }
+    .panel.active { display: block; animation: fadeIn 0.4s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
     .card {
-      background: var(--card-bg);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      margin-bottom: 25px;
+    }
+
+    .card h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.2rem;
+      margin-top: 0;
+      color: var(--secondary);
+      letter-spacing: 1px;
     }
 
     .form-group {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       flex-wrap: wrap;
-      margin-bottom: 15px;
+      margin-bottom: 20px;
     }
 
     input, select, button {
-      padding: 10px 14px;
+      padding: 12px 16px;
       font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(5, 8, 17, 0.6);
+      color: var(--text-main);
+      border-radius: 10px;
+      outline: none;
+      transition: all 0.3s;
     }
 
-    input[type="text"] { flex: 1; min-width: 200px; }
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+    }
+
+    input[type="text"] { flex: 1; min-width: 220px; }
+    input[type="date"], input[type="datetime-local"] { color-scheme: dark; }
 
     button.btn-add {
-      background: var(--primary);
-      color: white;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #050811;
       border: none;
       cursor: pointer;
-      font-weight: bold;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      letter-spacing: 1px;
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+    }
+
+    button.btn-add:hover {
+      opacity: 0.9;
+      box-shadow: 0 0 25px rgba(0, 242, 254, 0.5);
     }
 
     .task-list {
@@ -103,66 +170,97 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 15px;
-      border-bottom: 1px solid #eee;
+      padding: 15px 18px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      transition: background 0.2s;
     }
 
-    .task-item:last-child { border-bottom: none; }
+    .task-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
 
-    .task-info { display: flex; align-items: center; gap: 12px; }
-    .task-title { font-weight: 600; }
+    .task-info { display: flex; align-items: center; gap: 15px; }
+    
+    input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .task-title { font-weight: 600; font-size: 1.05rem; }
+    
     .task-category {
-      background: #e1f5fe;
-      color: #0288d1;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 0.85rem;
+      background: rgba(0, 242, 254, 0.1);
+      color: var(--primary);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-family: 'Orbitron', sans-serif;
     }
-    .task-dates { font-size: 0.85rem; color: #777; }
+
+    .task-dates { font-size: 0.85rem; color: var(--text-muted); margin-top: 3px; }
 
     .btn-delete {
-      background: var(--danger);
-      color: white;
-      border: none;
-      border-radius: 6px;
+      background: rgba(255, 75, 92, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(255, 75, 92, 0.3);
+      border-radius: 8px;
       cursor: pointer;
-      padding: 6px 10px;
+      padding: 8px 12px;
+      transition: all 0.2s;
     }
 
-    /* Botón de Voz Flotante */
+    .btn-delete:hover {
+      background: var(--danger);
+      color: white;
+      box-shadow: 0 0 15px rgba(255, 75, 92, 0.4);
+    }
+
+    /* Botón de Voz Flotante tipo HUD */
     .mic-btn {
       position: fixed;
-      bottom: 25px;
-      right: 25px;
-      width: 70px;
-      height: 70px;
+      bottom: 30px;
+      right: 30px;
+      width: 75px;
+      height: 75px;
       border-radius: 50%;
-      background: var(--primary);
-      color: white;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #050811;
       border: none;
-      font-size: 30px;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+      font-size: 32px;
+      box-shadow: 0 0 30px rgba(0, 242, 254, 0.5);
       cursor: pointer;
       display: flex;
       justify-content: center;
       align-items: center;
+      z-index: 999;
       transition: transform 0.2s;
     }
 
-    .mic-btn:active { transform: scale(0.95); }
-    .mic-btn.listening { background: var(--danger); animation: pulse 1.5s infinite; }
-
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
-      70% { box-shadow: 0 0 0 20px rgba(231, 76, 60, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+    .mic-btn:active { transform: scale(0.92); }
+    .mic-btn.listening { 
+      background: linear-gradient(135deg, #ff4b5c, #ff0055);
+      box-shadow: 0 0 40px rgba(255, 75, 92, 0.8);
+      animation: cyberPulse 1.5s infinite; 
     }
 
-    /* Modal / Pop-up del Día */
+    @keyframes cyberPulse {
+      0% { box-shadow: 0 0 0 0 rgba(255, 75, 92, 0.8); }
+      70% { box-shadow: 0 0 0 25px rgba(255, 75, 92, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 75, 92, 0); }
+    }
+
+    /* Modal / Pop-up del Día Estilo Sci-Fi */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6);
+      background: rgba(5, 8, 17, 0.85);
+      backdrop-filter: blur(10px);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -178,39 +276,52 @@
     }
 
     .modal-content {
-      background: white;
+      background: var(--glass-bg);
+      border: 1px solid var(--primary);
       width: 90%;
       max-width: 600px;
-      padding: 25px;
-      border-radius: 16px;
+      padding: 30px;
+      border-radius: 20px;
       max-height: 80vh;
       overflow-y: auto;
+      box-shadow: 0 0 50px rgba(0, 242, 254, 0.2);
     }
 
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 2px solid #eee;
-      padding-bottom: 10px;
-      margin-bottom: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+      font-family: 'Orbitron', sans-serif;
+      color: var(--primary);
+      margin: 0;
+      font-size: 1.3rem;
     }
 
     .close-btn {
-      background: var(--accent);
-      color: white;
-      border: none;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       padding: 8px 16px;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
     }
+
+    .close-btn:hover { background: rgba(255, 255, 255, 0.2); }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>📋 Organizador Tablet</h1>
-    <div id="clock" style="font-size: 1.2rem; font-weight: bold;"></div>
+    <h1>⚡ JARVIS Command</h1>
+    <div id="clock">00:00:00</div>
   </header>
 
   <div class="tabs">
@@ -221,63 +332,63 @@
 
   <!-- Panel Suhaila -->
   <div id="panel-SUHAILA" class="panel active card">
-    <h2>Tareas Suhaila</h2>
+    <h2>// MÓDULO SUHAILA</h2>
     <div class="form-group">
       <input type="text" id="cat-SUHAILA" placeholder="Categoría (ej: Baile, Cole)">
-      <input type="text" id="task-SUHAILA" placeholder="Tarea">
+      <input type="text" id="task-SUHAILA" placeholder="Nueva Tarea...">
       <input type="date" id="start-SUHAILA">
       <input type="date" id="end-SUHAILA">
-      <button class="btn-add" onclick="addTask('SUHAILA')">Añadir</button>
+      <button class="btn-add" onclick="addTask('SUHAILA')">+ AÑADIR</button>
     </div>
     <ul id="list-SUHAILA" class="task-list"></ul>
   </div>
 
   <!-- Panel Casa -->
   <div id="panel-CASA" class="panel card">
-    <h2>Tareas Casa</h2>
+    <h2>// MÓDULO CASA</h2>
     <div class="form-group">
       <input type="text" id="cat-CASA" placeholder="Categoría (ej: Limpieza, Compras)">
-      <input type="text" id="task-CASA" placeholder="Tarea">
+      <input type="text" id="task-CASA" placeholder="Nueva Tarea...">
       <input type="date" id="start-CASA">
       <input type="date" id="end-CASA">
-      <button class="btn-add" onclick="addTask('CASA')">Añadir</button>
+      <button class="btn-add" onclick="addTask('CASA')">+ AÑADIR</button>
     </div>
     <ul id="list-CASA" class="task-list"></ul>
   </div>
 
   <!-- Panel Recordatorios -->
   <div id="panel-Recordatorios" class="panel card">
-    <h2>Recordatorios (Avisos Telegram)</h2>
+    <h2>// MÓDULO TELEGRAM & RECORDATORIOS</h2>
     <div class="form-group">
-      <input type="text" id="task-Recordatorios" placeholder="Título del Recordatorio">
+      <input type="text" id="task-Recordatorios" placeholder="Título del Recordatorio...">
       <input type="datetime-local" id="date-Recordatorios">
-      <button class="btn-add" onclick="addReminder()">Añadir Recordatorio</button>
+      <button class="btn-add" onclick="addReminder()">+ PROGRAMAR</button>
     </div>
     <ul id="list-Recordatorios" class="task-list"></ul>
   </div>
 
-  <!-- Botón de Micrófono -->
-  <button class="mic-btn" id="micBtn" onclick="toggleVoiceRecognition()">🎙️</button>
+  <!-- Botón de Micrófono HUD -->
+  <button class="mic-btn" id="micBtn" onclick="toggleVoiceRecognition()" title="Comando de Voz">🎙️</button>
 
   <!-- Ventana Emergente Matutina -->
   <div class="modal-overlay" id="dailyModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>☀️ Tareas Programadas para Hoy</h2>
-        <button class="close-btn" onclick="closeModal()">Cerrar</button>
+        <h2>⚡ SECUENCIA MATUTINA: TAREAS DE HOY</h2>
+        <button class="close-btn" onclick="closeModal()">CERRAR</button>
       </div>
       <ul id="dailyTaskList" class="task-list"></ul>
     </div>
   </div>
 
   <script>
-    // ⚠️ REEMPLAZA ESTA URL CON LA URL DE TU SCRIPT DE GOOGLE APPS SCRIPT
+    // ⚠️ ASEGÚRATE DE MANTENER TU URL DE GOOGLE APPS SCRIPT AQUÍ
     const API_URL = "https://script.google.com/macros/s/AKfycbyusACb-e4IIODnUklcfFn5Zv10zr51stxNMH2FyHJmdIWn_-X9gafIy_LvferLt_uDgg/exec";
 
     let currentTab = "SUHAILA";
     let globalData = { suhaila: [], casa: [], recordatorios: [] };
 
-    // Reloj
+    // Reloj digital futurista
     setInterval(() => {
       const now = new Date();
       document.getElementById('clock').innerText = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
@@ -313,7 +424,6 @@
       const listEl = document.getElementById(`list-${sheet}`);
       listEl.innerHTML = '';
       
-      // Ordenar: las más recientes arriba (mayor ID)
       items.sort((a, b) => b[0] - a[0]);
 
       items.forEach(row => {
@@ -325,8 +435,8 @@
             <input type="checkbox" ${done ? 'checked' : ''} onchange="toggleTask('${sheet}', ${id}, this.checked)">
             <div>
               <span class="task-category">${cat || 'General'}</span>
-              <span class="task-title" style="${done ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${task}</span>
-              <div class="task-dates">🗓️ ${start || 'S/F'} al ${end || 'S/F'}</div>
+              <span class="task-title" style="${done ? 'text-decoration: line-through; opacity: 0.4;' : ''}">${task}</span>
+              <div class="task-dates">🗓️ ${start || 'S/F'} ➔ ${end || 'S/F'}</div>
             </div>
           </div>
           <button class="btn-delete" onclick="deleteTask('${sheet}', ${id})">🗑️</button>
@@ -365,12 +475,13 @@
 
       await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'add', sheet, category: cat, item: task, startDate: start, endDate: end })
       });
 
       document.getElementById(`cat-${sheet}`).value = '';
       document.getElementById(`task-${sheet}`).value = '';
-      loadData();
+      setTimeout(loadData, 400);
     }
 
     async function addReminder() {
@@ -381,30 +492,36 @@
 
       await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'add', sheet: 'Recordatorios', item: task, date })
       });
 
       document.getElementById('task-Recordatorios').value = '';
-      loadData();
+      setTimeout(loadData, 400);
     }
 
     async function toggleTask(sheet, id, completed) {
       await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'toggle', sheet, id, completed })
       });
-      loadData();
+      setTimeout(loadData, 400);
     }
 
     async function deleteTask(sheet, id) {
-      await fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'delete', sheet, id })
-      });
-      loadData();
+      try {
+        await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'delete', sheet: sheet, id: id })
+        });
+        setTimeout(loadData, 500);
+      } catch (err) {
+        console.error("Error al borrar:", err);
+      }
     }
 
-    // Modal Matutino
     function checkDailyTasks() {
       const todayStr = new Date().toISOString().split('T')[0];
       let todayTasks = [];
@@ -423,7 +540,6 @@
       filterFn(globalData.suhaila, 'SUHAILA');
       filterFn(globalData.casa, 'CASA');
 
-      // Ordenar las más recientes arriba
       todayTasks.sort((a, b) => b.rowId - a.rowId);
 
       if (todayTasks.length > 0) {
@@ -435,7 +551,7 @@
           li.innerHTML = `
             <div>
               <span class="task-category">[${t.sheetName}] ${t.cat || 'General'}</span>
-              <div class="task-title">${t.task}</div>
+              <div class="task-title" style="margin-top: 5px;">${t.task}</div>
             </div>
           `;
           modalList.appendChild(li);
@@ -480,7 +596,6 @@
 
       recognition.onresult = async (event) => {
         const text = event.results[0][0].transcript.toLowerCase();
-        console.log("Dictado:", text);
         await processVoiceCommand(text);
       };
 
@@ -498,14 +613,11 @@
       if (text.includes("limpieza")) category = "Limpieza";
       if (text.includes("compra")) category = "Compra";
 
-      // Detectar fecha del próximo día mencionado
       const days = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
       let targetDate = new Date();
-      let foundDay = false;
 
       days.forEach((day, idx) => {
         if (text.includes(day)) {
-          foundDay = true;
           let distance = (idx + 7 - targetDate.getDay()) % 7;
           if (distance === 0) distance = 7;
           targetDate.setDate(targetDate.getDate() + distance);
@@ -513,21 +625,19 @@
       });
 
       const startDateStr = targetDate.toISOString().split('T')[0];
-      
-      // Fecha fin: al día siguiente
       let endDateObj = new Date(targetDate);
       endDateObj.setDate(endDateObj.getDate() + 1);
       const endDateStr = endDateObj.toISOString().split('T')[0];
 
-      // Limpiar texto para extraer la tarea
       let cleanTask = text
         .replace(/añade|agregar|pon|en|a|para|el|la|categoría|casa|suhaila|recordatorio|baile|cole|limpieza|compra|lunes|martes|miércoles|jueves|viernes|sábado|domingo/g, "")
         .trim();
 
-      if (!cleanTask) cleanTask = "Tarea dictada por voz";
+      if (!cleanTask) cleanTask = "Tarea por voz";
 
       await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ 
           action: 'add', 
           sheet, 
@@ -538,9 +648,8 @@
         })
       });
 
-      const msg = `Añadida la tarea ${cleanTask} a ${sheet} en la categoría ${category}`;
-      speak(msg);
-      loadData();
+      speak(`Tarea añadida a ${sheet}`);
+      setTimeout(loadData, 500);
     }
 
     function speak(text) {
@@ -551,7 +660,6 @@
       }
     }
 
-    // Cargar al iniciar
     loadData();
   </script>
 </body>
