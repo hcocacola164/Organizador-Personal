@@ -1,204 +1,558 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organizador Personal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organizador de Casa</title>
+  <style>
+    :root {
+      --bg-color: #f4f6f9;
+      --card-bg: #ffffff;
+      --primary: #4a90e2;
+      --accent: #2c3e50;
+      --danger: #e74c3c;
+      --success: #2ecc71;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      background: var(--card-bg);
+      padding: 15px 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    h1 { margin: 0; font-size: 1.8rem; color: var(--accent); }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      padding: 12px 24px;
+      font-size: 1.1rem;
+      border: none;
+      background: #e0e6ed;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      color: var(--accent);
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .card {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    input, select, button {
+      padding: 10px 14px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    input[type="text"] { flex: 1; min-width: 200px; }
+
+    button.btn-add {
+      background: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .task-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 15px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .task-item:last-child { border-bottom: none; }
+
+    .task-info { display: flex; align-items: center; gap: 12px; }
+    .task-title { font-weight: 600; }
+    .task-category {
+      background: #e1f5fe;
+      color: #0288d1;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+    .task-dates { font-size: 0.85rem; color: #777; }
+
+    .btn-delete {
+      background: var(--danger);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      padding: 6px 10px;
+    }
+
+    /* Botón de Voz Flotante */
+    .mic-btn {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      font-size: 30px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+
+    .mic-btn:active { transform: scale(0.95); }
+    .mic-btn.listening { background: var(--danger); animation: pulse 1.5s infinite; }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+      70% { box-shadow: 0 0 0 20px rgba(231, 76, 60, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+    }
+
+    /* Modal / Pop-up del Día */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      visibility: hidden;
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+
+    .modal-overlay.show {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .modal-content {
+      background: white;
+      width: 90%;
+      max-width: 600px;
+      padding: 25px;
+      border-radius: 16px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+
+    .close-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-4 font-sans">
-    <div class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-6">
-        <h1 class="text-2xl font-bold text-center text-indigo-600 mb-6">🏡 Mi Organizador</h1>
+<body>
 
-        <!-- Navegación por Pestañas Principales -->
-        <div class="flex justify-between border-b pb-3 mb-4 text-sm font-semibold">
-            <button onclick="setTab('suhaila')" id="btn-suhaila" class="text-indigo-600 border-b-2 border-indigo-600 pb-1 font-bold">SUHAILA👧🏼🩷</button>
-            <button onclick="setTab('casa')" id="btn-casa" class="text-gray-400 pb-1">CASA 🏠</button>
-            <button onclick="setTab('recordatorios')" id="btn-recordatorios" class="text-gray-400 pb-1">Recordatorios📝⏰</button>
-        </div>
+  <header>
+    <h1>📋 Organizador Tablet</h1>
+    <div id="clock" style="font-size: 1.2rem; font-weight: bold;"></div>
+  </header>
 
-        <!-- Subcategorías -->
-        <div id="subnav" class="flex gap-2 overflow-x-auto pb-2 mb-4"></div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('SUHAILA')">SUHAILA</button>
+    <button class="tab-btn" onclick="switchTab('CASA')">CASA</button>
+    <button class="tab-btn" onclick="switchTab('Recordatorios')">RECORDATORIOS</button>
+  </div>
 
-        <!-- Formulario para añadir ítem -->
-        <div class="bg-gray-50 p-4 rounded-xl mb-6 shadow-inner">
-            <h2 class="text-xs font-bold text-gray-500 uppercase mb-2">➕ Añadir Tarea</h2>
-            <div class="space-y-2">
-                <input type="text" id="input-item" placeholder="Escribe aquí..." class="w-full p-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <div id="datetime-container" class="hidden">
-                    <input type="datetime-local" id="input-date" class="w-full p-2 border rounded-lg text-sm">
-                </div>
-                <button onclick="agregarItem()" id="btn-guardar" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold text-sm hover:bg-indigo-700">💾 Guardar</button>
-            </div>
-        </div>
-
-        <!-- Lista de tareas -->
-        <div id="lista-container" class="space-y-2">
-            <p class="text-center text-gray-400 text-sm py-4">⏳ Cargando datos...</p>
-        </div>
+  <!-- Panel Suhaila -->
+  <div id="panel-SUHAILA" class="panel active card">
+    <h2>Tareas Suhaila</h2>
+    <div class="form-group">
+      <input type="text" id="cat-SUHAILA" placeholder="Categoría (ej: Baile, Cole)">
+      <input type="text" id="task-SUHAILA" placeholder="Tarea">
+      <input type="date" id="start-SUHAILA">
+      <input type="date" id="end-SUHAILA">
+      <button class="btn-add" onclick="addTask('SUHAILA')">Añadir</button>
     </div>
+    <ul id="list-SUHAILA" class="task-list"></ul>
+  </div>
 
-    <script>
-        // 👇 PEGA TU URL DE APPS SCRIPT AQUÍ
-        const API_URL = "https://script.google.com/macros/s/AKfycbyusACb-e4IIODnUklcfFn5Zv10zr51stxNMH2FyHJmdIWn_-X9gafIy_LvferLt_uDgg/exec"; 
+  <!-- Panel Casa -->
+  <div id="panel-CASA" class="panel card">
+    <h2>Tareas Casa</h2>
+    <div class="form-group">
+      <input type="text" id="cat-CASA" placeholder="Categoría (ej: Limpieza, Compras)">
+      <input type="text" id="task-CASA" placeholder="Tarea">
+      <input type="date" id="start-CASA">
+      <input type="date" id="end-CASA">
+      <button class="btn-add" onclick="addTask('CASA')">Añadir</button>
+    </div>
+    <ul id="list-CASA" class="task-list"></ul>
+  </div>
 
-        let cacheDatos = { suhaila: [], casa: [], recordatorios: [] };
-        let tabActual = 'suhaila';
-        let subActual = 'Escuela';
+  <!-- Panel Recordatorios -->
+  <div id="panel-Recordatorios" class="panel card">
+    <h2>Recordatorios (Avisos Telegram)</h2>
+    <div class="form-group">
+      <input type="text" id="task-Recordatorios" placeholder="Título del Recordatorio">
+      <input type="datetime-local" id="date-Recordatorios">
+      <button class="btn-add" onclick="addReminder()">Añadir Recordatorio</button>
+    </div>
+    <ul id="list-Recordatorios" class="task-list"></ul>
+  </div>
 
-        const subs = {
-            suhaila: ['Escuela', 'Baile', 'Inglés', 'Necesidades'],
-            casa: ['Lista de la Compra', 'Tareas'],
-            recordatorios: ['General']
-        };
+  <!-- Botón de Micrófono -->
+  <button class="mic-btn" id="micBtn" onclick="toggleVoiceRecognition()">🎙️</button>
 
-        function setTab(t) {
-            tabActual = t;
-            subActual = subs[t][0];
+  <!-- Ventana Emergente Matutina -->
+  <div class="modal-overlay" id="dailyModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>☀️ Tareas Programadas para Hoy</h2>
+        <button class="close-btn" onclick="closeModal()">Cerrar</button>
+      </div>
+      <ul id="dailyTaskList" class="task-list"></ul>
+    </div>
+  </div>
 
-            ['suhaila', 'casa', 'recordatorios'].forEach(tab => {
-                const el = document.getElementById(`btn-${tab}`);
-                if(tab === t) {
-                    el.className = "text-indigo-600 border-b-2 border-indigo-600 pb-1 font-bold";
-                } else {
-                    el.className = "text-gray-400 pb-1 font-semibold";
-                }
-            });
+  <script>
+    // ⚠️ REEMPLAZA ESTA URL CON LA URL DE TU SCRIPT DE GOOGLE APPS SCRIPT
+    const API_URL = "https://script.google.com/macros/s/AKfycbyusACb-e4IIODnUklcfFn5Zv10zr51stxNMH2FyHJmdIWn_-X9gafIy_LvferLt_uDgg/exec";
 
-            document.getElementById('datetime-container').classList.toggle('hidden', t !== 'recordatorios');
-            renderSubnav();
-            renderLista();
-        }
+    let currentTab = "SUHAILA";
+    let globalData = { suhaila: [], casa: [], recordatorios: [] };
 
-        function renderSubnav() {
-            const nav = document.getElementById('subnav');
-            nav.innerHTML = '';
-            subs[tabActual].forEach(s => {
-                const b = document.createElement('button');
-                b.innerText = s;
-                b.className = `px-3 py-1 text-xs rounded-full whitespace-nowrap ${s === subActual ? 'bg-indigo-100 text-indigo-700 font-bold' : 'bg-gray-100 text-gray-500'}`;
-                b.onclick = () => { subActual = s; renderSubnav(); renderLista(); };
-                nav.appendChild(b);
-            });
-        }
+    // Reloj
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('clock').innerText = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+    }, 1000);
 
-        function renderLista() {
-            const container = document.getElementById('lista-container');
-            container.innerHTML = '';
+    function switchTab(tabName) {
+      currentTab = tabName;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      document.getElementById(`panel-${tabName}`).classList.add('active');
+    }
 
-            let items = [];
-            if (tabActual === 'suhaila') {
-                items = (cacheDatos.suhaila || []).filter(r => String(r[1]).trim().toLowerCase() === subActual.trim().toLowerCase());
-            } else if (tabActual === 'casa') {
-                items = (cacheDatos.casa || []).filter(r => String(r[1]).trim().toLowerCase() === subActual.trim().toLowerCase());
-            } else {
-                items = cacheDatos.recordatorios || [];
+    async function loadData() {
+      try {
+        const res = await fetch(`${API_URL}?action=getData`);
+        globalData = await res.json();
+        renderLists();
+        checkDailyTasks();
+      } catch (err) {
+        console.error("Error cargando datos:", err);
+      }
+    }
+
+    function renderLists() {
+      renderCategoryList('SUHAILA', globalData.suhaila);
+      renderCategoryList('CASA', globalData.casa);
+      renderReminderList(globalData.recordatorios);
+    }
+
+    function renderCategoryList(sheet, items) {
+      const listEl = document.getElementById(`list-${sheet}`);
+      listEl.innerHTML = '';
+      
+      // Ordenar: las más recientes arriba (mayor ID)
+      items.sort((a, b) => b[0] - a[0]);
+
+      items.forEach(row => {
+        const [id, cat, task, start, end, done] = row;
+        const li = document.createElement('li');
+        li.className = 'task-item';
+        li.innerHTML = `
+          <div class="task-info">
+            <input type="checkbox" ${done ? 'checked' : ''} onchange="toggleTask('${sheet}', ${id}, this.checked)">
+            <div>
+              <span class="task-category">${cat || 'General'}</span>
+              <span class="task-title" style="${done ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${task}</span>
+              <div class="task-dates">🗓️ ${start || 'S/F'} al ${end || 'S/F'}</div>
+            </div>
+          </div>
+          <button class="btn-delete" onclick="deleteTask('${sheet}', ${id})">🗑️</button>
+        `;
+        listEl.appendChild(li);
+      });
+    }
+
+    function renderReminderList(items) {
+      const listEl = document.getElementById('list-Recordatorios');
+      listEl.innerHTML = '';
+      items.sort((a, b) => b[0] - a[0]);
+
+      items.forEach(row => {
+        const [id, task, dateStr, a7, a1] = row;
+        const li = document.createElement('li');
+        li.className = 'task-item';
+        li.innerHTML = `
+          <div class="task-info">
+            <span class="task-title">${task}</span>
+            <div class="task-dates">⏰ ${dateStr ? new Date(dateStr).toLocaleString() : ''}</div>
+          </div>
+          <button class="btn-delete" onclick="deleteTask('Recordatorios', ${id})">🗑️</button>
+        `;
+        listEl.appendChild(li);
+      });
+    }
+
+    async function addTask(sheet) {
+      const cat = document.getElementById(`cat-${sheet}`).value;
+      const task = document.getElementById(`task-${sheet}`).value;
+      const start = document.getElementById(`start-${sheet}`).value;
+      const end = document.getElementById(`end-${sheet}`).value;
+
+      if (!task) return alert("Escribe una tarea");
+
+      await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'add', sheet, category: cat, item: task, startDate: start, endDate: end })
+      });
+
+      document.getElementById(`cat-${sheet}`).value = '';
+      document.getElementById(`task-${sheet}`).value = '';
+      loadData();
+    }
+
+    async function addReminder() {
+      const task = document.getElementById('task-Recordatorios').value;
+      const date = document.getElementById('date-Recordatorios').value;
+
+      if (!task) return alert("Escribe un recordatorio");
+
+      await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'add', sheet: 'Recordatorios', item: task, date })
+      });
+
+      document.getElementById('task-Recordatorios').value = '';
+      loadData();
+    }
+
+    async function toggleTask(sheet, id, completed) {
+      await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'toggle', sheet, id, completed })
+      });
+      loadData();
+    }
+
+    async function deleteTask(sheet, id) {
+      await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'delete', sheet, id })
+      });
+      loadData();
+    }
+
+    // Modal Matutino
+    function checkDailyTasks() {
+      const todayStr = new Date().toISOString().split('T')[0];
+      let todayTasks = [];
+
+      const filterFn = (items, sheetName) => {
+        items.forEach(row => {
+          const [id, cat, task, start, end, done] = row;
+          if (!done && start && end) {
+            if (start <= todayStr && todayStr <= end) {
+              todayTasks.push({ id, cat, task, start, end, sheetName, rowId: id });
             }
+          }
+        });
+      };
 
-            if (items.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-400 text-sm py-4">✨ No hay elementos guardados.</p>';
-                return;
-            }
+      filterFn(globalData.suhaila, 'SUHAILA');
+      filterFn(globalData.casa, 'CASA');
 
-            items.forEach(item => {
-                const div = document.createElement('div');
-                div.className = "flex items-center justify-between p-3 bg-white border rounded-xl shadow-sm text-sm";
-                
-                let texto = "";
-                let completado = false;
+      // Ordenar las más recientes arriba
+      todayTasks.sort((a, b) => b.rowId - a.rowId);
 
-                if (tabActual === 'recordatorios') {
-                    let titulo = item[1] || ""; // Columna B (Titulo)
-                    let fechaRaw = item[2];    // Columna C (FechaHora)
-                    let fechaF = fechaRaw ? new Date(fechaRaw).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : '';
-                    texto = `<div><span class="font-medium">🔔 ${titulo}</span><br><span class="text-xs text-indigo-500">📅 ${fechaF}</span></div>`;
-                } else {
-                    texto = `<span>📌 ${item[2] || ""}</span>`; // Columna C (Tarea)
-                    completado = item[3] === true || item[3] === "true"; // Columna D
-                }
+      if (todayTasks.length > 0) {
+        const modalList = document.getElementById('dailyTaskList');
+        modalList.innerHTML = '';
+        todayTasks.forEach(t => {
+          const li = document.createElement('li');
+          li.className = 'task-item';
+          li.innerHTML = `
+            <div>
+              <span class="task-category">[${t.sheetName}] ${t.cat || 'General'}</span>
+              <div class="task-title">${t.task}</div>
+            </div>
+          `;
+          modalList.appendChild(li);
+        });
+        document.getElementById('dailyModal').classList.add('show');
+      }
+    }
 
-                div.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        ${tabActual !== 'recordatorios' ? `<input type="checkbox" ${completado ? 'checked' : ''} onchange="toggleItem('${item[0]}', this.checked)" class="h-4 w-4 text-indigo-600 rounded">` : ''}
-                        <div class="${completado ? 'line-through text-gray-400' : 'text-gray-800'}">${texto}</div>
-                    </div>
-                    <button onclick="eliminarItem('${item[0]}')" class="text-red-400 hover:text-red-600 p-1 font-bold text-xs">🗑️</button>
-                `;
-                container.appendChild(div);
-            });
+    function closeModal() {
+      document.getElementById('dailyModal').classList.remove('show');
+    }
+
+    // Reconocimiento de Voz
+    let recognition;
+    let isListening = false;
+
+    function toggleVoiceRecognition() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("Tu navegador no soporta reconocimiento de voz.");
+        return;
+      }
+
+      if (isListening) {
+        recognition.stop();
+        return;
+      }
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'es-ES';
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        isListening = true;
+        document.getElementById('micBtn').classList.add('listening');
+      };
+
+      recognition.onend = () => {
+        isListening = false;
+        document.getElementById('micBtn').classList.remove('listening');
+      };
+
+      recognition.onresult = async (event) => {
+        const text = event.results[0][0].transcript.toLowerCase();
+        console.log("Dictado:", text);
+        await processVoiceCommand(text);
+      };
+
+      recognition.start();
+    }
+
+    async function processVoiceCommand(text) {
+      let sheet = "SUHAILA";
+      if (text.includes("casa")) sheet = "CASA";
+      if (text.includes("recordatorio")) sheet = "Recordatorios";
+
+      let category = "General";
+      if (text.includes("baile")) category = "Baile";
+      if (text.includes("cole") || text.includes("colegio")) category = "Cole";
+      if (text.includes("limpieza")) category = "Limpieza";
+      if (text.includes("compra")) category = "Compra";
+
+      // Detectar fecha del próximo día mencionado
+      const days = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+      let targetDate = new Date();
+      let foundDay = false;
+
+      days.forEach((day, idx) => {
+        if (text.includes(day)) {
+          foundDay = true;
+          let distance = (idx + 7 - targetDate.getDay()) % 7;
+          if (distance === 0) distance = 7;
+          targetDate.setDate(targetDate.getDate() + distance);
         }
+      });
 
-        function cargarDatos() {
-            fetch(API_URL + "?action=getData")
-                .then(r => r.json())
-                .then(data => {
-                    cacheDatos = data;
-                    renderLista();
-                })
-                .catch(err => console.error("Error cargando:", err));
-        }
+      const startDateStr = targetDate.toISOString().split('T')[0];
+      
+      // Fecha fin: al día siguiente
+      let endDateObj = new Date(targetDate);
+      endDateObj.setDate(endDateObj.getDate() + 1);
+      const endDateStr = endDateObj.toISOString().split('T')[0];
 
-        function agregarItem() {
-            const txt = document.getElementById('input-item');
-            const date = document.getElementById('input-date');
-            const btn = document.getElementById('btn-guardar');
+      // Limpiar texto para extraer la tarea
+      let cleanTask = text
+        .replace(/añade|agregar|pon|en|a|para|el|la|categoría|casa|suhaila|recordatorio|baile|cole|limpieza|compra|lunes|martes|miércoles|jueves|viernes|sábado|domingo/g, "")
+        .trim();
 
-            if (!txt.value.trim()) return;
+      if (!cleanTask) cleanTask = "Tarea dictada por voz";
 
-            btn.innerText = "⏳ Guardando...";
-            btn.disabled = true;
+      await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ 
+          action: 'add', 
+          sheet, 
+          category, 
+          item: cleanTask, 
+          startDate: startDateStr, 
+          endDate: endDateStr 
+        })
+      });
 
-            const payload = {
-                action: 'add',
-                sheet: tabActual,
-                category: subActual,
-                item: txt.value.trim(),
-                date: (tabActual === 'recordatorios' && date) ? date.value : ""
-            };
+      const msg = `Añadida la tarea ${cleanTask} a ${sheet} en la categoría ${category}`;
+      speak(msg);
+      loadData();
+    }
 
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload)
-            })
-            .then(r => r.json())
-            .then(res => {
-                txt.value = '';
-                if(date) date.value = '';
-                btn.innerText = "💾 Guardar";
-                btn.disabled = false;
-                cargarDatos();
-            })
-            .catch(err => {
-                console.error("Error guardando:", err);
-                btn.innerText = "💾 Guardar";
-                btn.disabled = false;
-            });
-        }
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-ES';
+        window.speechSynthesis.speak(utterance);
+      }
+    }
 
-        function toggleItem(id, estado) {
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'toggle', sheet: tabActual, id: id, completed: estado })
-            });
-        }
-
-        function eliminarItem(id) {
-            if(tabActual === 'suhaila') cacheDatos.suhaila = cacheDatos.suhaila.filter(r => String(r[0]) !== String(id));
-            if(tabActual === 'casa') cacheDatos.casa = cacheDatos.casa.filter(r => String(r[0]) !== String(id));
-            if(tabActual === 'recordatorios') cacheDatos.recordatorios = cacheDatos.recordatorios.filter(r => String(r[0]) !== String(id));
-            renderLista();
-
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'delete', sheet: tabActual, id: id })
-            }).then(() => setTimeout(cargarDatos, 500));
-        }
-
-        setTab('suhaila');
-        cargarDatos();
-    </script>
+    // Cargar al iniciar
+    loadData();
+  </script>
 </body>
 </html>
