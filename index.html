@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JARVIS Command Center</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at 50% 10%, #0d1b2a 0%, #050811 100%);
+      --glass-bg: rgba(17, 24, 39, 0.75);
+      --glass-border: rgba(0, 242, 254, 0.2);
+      --primary: #00f2fe;
+      --secondary: #4facfe;
+      --accent: #9b51e0;
+      --danger: #ff4b5c;
+      --text-main: #f0f4f8;
+      --text-muted: #94a3b8;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      margin: 0;
+      padding: 20px;
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      padding: 20px 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    h1 { 
+      margin: 0; 
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.6rem; 
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+    }
+
+    #clock {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      color: var(--primary);
+      text-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .tab-btn {
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text-muted);
+      backdrop-filter: blur(8px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tab-btn:hover {
+      border-color: var(--primary);
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(79, 172, 254, 0.15));
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; animation: fadeIn 0.4s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      margin-bottom: 25px;
+    }
+
+    .card h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.2rem;
+      margin-top: 0;
+      color: var(--secondary);
+      letter-spacing: 1px;
+    }
+
+    .form-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    input, select, button {
+      padding: 12px 16px;
+      font-size: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(5, 8, 17, 0.6);
+      color: var(--text-main);
+      border-radius: 10px;
+      outline: none;
+      transition: all 0.3s;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+    }
+
+    input[type="text"] { flex: 1; min-width: 220px; }
+    input[type="date"], input[type="datetime-local"] { color-scheme: dark; }
+
+    button.btn-add {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #050811;
+      border: none;
+      cursor: pointer;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      letter-spacing: 1px;
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+    }
+
+    button.btn-add:hover {
+      opacity: 0.9;
+      box-shadow: 0 0 25px rgba(0, 242, 254, 0.5);
+    }
+
+    .task-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 18px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      transition: background 0.2s;
+    }
+
+    .task-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .task-info { display: flex; align-items: center; gap: 15px; }
+    
+    input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .task-title { font-weight: 600; font-size: 1.05rem; }
+    
+    .task-category {
+      background: rgba(0, 242, 254, 0.1);
+      color: var(--primary);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    .task-dates { font-size: 0.85rem; color: var(--text-muted); margin-top: 3px; }
+
+    .btn-delete {
+      background: rgba(255, 75, 92, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(255, 75, 92, 0.3);
+      border-radius: 8px;
+      cursor: pointer;
+      padding: 8px 12px;
+      transition: all 0.2s;
+    }
+
+    .btn-delete:hover {
+      background: var(--danger);
+      color: white;
+      box-shadow: 0 0 15px rgba(255, 75, 92, 0.4);
+    }
+
+    /* Botón de Voz Flotante tipo HUD */
+    .mic-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 75px;
+      height: 75px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #050811;
+      border: none;
+      font-size: 32px;
+      box-shadow: 0 0 30px rgba(0, 242, 254, 0.5);
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+      transition: transform 0.2s;
+    }
+
+    .mic-btn:active { transform: scale(0.92); }
+    .mic-btn.listening { 
+      background: linear-gradient(135deg, #ff4b5c, #ff0055);
+      box-shadow: 0 0 40px rgba(255, 75, 92, 0.8);
+      animation: cyberPulse 1.5s infinite; 
+    }
+
+    @keyframes cyberPulse {
+      0% { box-shadow: 0 0 0 0 rgba(255, 75, 92, 0.8); }
+      70% { box-shadow: 0 0 0 25px rgba(255, 75, 92, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 75, 92, 0); }
+    }
+
+    /* Modal / Pop-up del Día Estilo Sci-Fi */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(5, 8, 17, 0.85);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      visibility: hidden;
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+
+    .modal-overlay.show {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .modal-content {
+      background: var(--glass-bg);
+      border: 1px solid var(--primary);
+      width: 90%;
+      max-width: 600px;
+      padding: 30px;
+      border-radius: 20px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 0 50px rgba(0, 242, 254, 0.2);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+      font-family: 'Orbitron', sans-serif;
+      color: var(--primary);
+      margin: 0;
+      font-size: 1.3rem;
+    }
+
+    .close-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+    }
+
+    .close-btn:hover { background: rgba(255, 255, 255, 0.2); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>⚡ JARVIS Command</h1>
+    <div id="clock">00:00:00</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('SUHAILA')">SUHAILA</button>
+    <button class="tab-btn" onclick="switchTab('CASA')">CASA</button>
+    <button class="tab-btn" onclick="switchTab('Recordatorios')">RECORDATORIOS</button>
+  </div>
+
+  <!-- Panel Suhaila -->
+  <div id="panel-SUHAILA" class="panel active card">
+    <h2>// MÓDULO SUHAILA</h2>
+    <div class="form-group">
+      <input type="text" id="cat-SUHAILA" placeholder="Categoría (ej: Baile, Cole)">
+      <input type="text" id="task-SUHAILA" placeholder="Nueva Tarea...">
+      <input type="date" id="start-SUHAILA">
+      <input type="date" id="end-SUHAILA">
+      <button class="btn-add" onclick="addTask('SUHAILA')">+ AÑADIR</button>
+    </div>
+    <ul id="list-SUHAILA" class="task-list"></ul>
+  </div>
+
+  <!-- Panel Casa -->
+  <div id="panel-CASA" class="panel card">
+    <h2>// MÓDULO CASA</h2>
+    <div class="form-group">
+      <input type="text" id="cat-CASA" placeholder="Categoría (ej: Limpieza, Compras)">
+      <input type="text" id="task-CASA" placeholder="Nueva Tarea...">
+      <input type="date" id="start-CASA">
+      <input type="date" id="end-CASA">
+      <button class="btn-add" onclick="addTask('CASA')">+ AÑADIR</button>
+    </div>
+    <ul id="list-CASA" class="task-list"></ul>
+  </div>
+
+  <!-- Panel Recordatorios -->
+  <div id="panel-Recordatorios" class="panel card">
+    <h2>// MÓDULO TELEGRAM & RECORDATORIOS</h2>
+    <div class="form-group">
+      <input type="text" id="task-Recordatorios" placeholder="Título del Recordatorio...">
+      <input type="datetime-local" id="date-Recordatorios">
+      <button class="btn-add" onclick="addReminder()">+ PROGRAMAR</button>
+    </div>
+    <ul id="list-Recordatorios" class="task-list"></ul>
+  </div>
+
+  <!-- Botón de Micrófono HUD -->
+  <button class="mic-btn" id="micBtn" onclick="toggleVoiceRecognition()" title="Comando de Voz">🎙️</button>
+
+  <!-- Ventana Emergente Matutina -->
+  <div class="modal-overlay" id="dailyModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>⚡ SECUENCIA MATUTINA: TAREAS DE HOY</h2>
+        <button class="close-btn" onclick="closeModal()">CERRAR</button>
+      </div>
+      <ul id="dailyTaskList" class="task-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    // ⚠️ ASEGÚRATE DE MANTENER TU URL DE GOOGLE APPS SCRIPT AQUÍ
+    const API_URL = "https://script.google.com/macros/s/AKfycbyusACb-e4IIODnUklcfFn5Zv10zr51stxNMH2FyHJmdIWn_-X9gafIy_LvferLt_uDgg/exec";
+
+    let currentTab = "SUHAILA";
+    let globalData = { suhaila: [], casa: [], recordatorios: [] };
+
+    // Reloj digital futurista
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('clock').innerText = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+    }, 1000);
+
+    function switchTab(tabName) {
+      currentTab = tabName;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      document.getElementById(`panel-${tabName}`).classList.add('active');
+    }
+
+    async function loadData() {
+      try {
+        const res = await fetch(`${API_URL}?action=getData`);
+        globalData = await res.json();
+        renderLists();
+        checkDailyTasks();
+      } catch (err) {
+        console.error("Error cargando datos:", err);
+      }
+    }
+
+    function renderLists() {
+      renderCategoryList('SUHAILA', globalData.suhaila);
+      renderCategoryList('CASA', globalData.casa);
+      renderReminderList(globalData.recordatorios);
+    }
+
+    function renderCategoryList(sheet, items) {
+      const listEl = document.getElementById(`list-${sheet}`);
+      listEl.innerHTML = '';
+      
+      items.sort((a, b) => b[0] - a[0]);
+
+      items.forEach(row => {
+        const [id, cat, task, start, end, done] = row;
+        const li = document.createElement('li');
+        li.className = 'task-item';
+        li.innerHTML = `
+          <div class="task-info">
+            <input type="checkbox" ${done ? 'checked' : ''} onchange="toggleTask('${sheet}', ${id}, this.checked)">
+            <div>
+              <span class="task-category">${cat || 'General'}</span>
+              <span class="task-title" style="${done ? 'text-decoration: line-through; opacity: 0.4;' : ''}">${task}</span>
+              <div class="task-dates">🗓️ ${start || 'S/F'} ➔ ${end || 'S/F'}</div>
+            </div>
+          </div>
+          <button class="btn-delete" onclick="deleteTask('${sheet}', ${id})">🗑️</button>
+        `;
+        listEl.appendChild(li);
+      });
+    }
+
+    function renderReminderList(items) {
+      const listEl = document.getElementById('list-Recordatorios');
+      listEl.innerHTML = '';
+      items.sort((a, b) => b[0] - a[0]);
+
+      items.forEach(row => {
+        const [id, task, dateStr, a7, a1] = row;
+        const li = document.createElement('li');
+        li.className = 'task-item';
+        li.innerHTML = `
+          <div class="task-info">
+            <span class="task-title">${task}</span>
+            <div class="task-dates">⏰ ${dateStr ? new Date(dateStr).toLocaleString() : ''}</div>
+          </div>
+          <button class="btn-delete" onclick="deleteTask('Recordatorios', ${id})">🗑️</button>
+        `;
+        listEl.appendChild(li);
+      });
+    }
+
+    async function addTask(sheet) {
+      const cat = document.getElementById(`cat-${sheet}`).value;
+      const task = document.getElementById(`task-${sheet}`).value;
+      const start = document.getElementById(`start-${sheet}`).value;
+      const end = document.getElementById(`end-${sheet}`).value;
+
+      if (!task) return alert("Escribe una tarea");
+
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'add', sheet, category: cat, item: task, startDate: start, endDate: end })
+      });
+
+      document.getElementById(`cat-${sheet}`).value = '';
+      document.getElementById(`task-${sheet}`).value = '';
+      setTimeout(loadData, 400);
+    }
+
+    async function addReminder() {
+      const task = document.getElementById('task-Recordatorios').value;
+      const date = document.getElementById('date-Recordatorios').value;
+
+      if (!task) return alert("Escribe un recordatorio");
+
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'add', sheet: 'Recordatorios', item: task, date })
+      });
+
+      document.getElementById('task-Recordatorios').value = '';
+      setTimeout(loadData, 400);
+    }
+
+    async function toggleTask(sheet, id, completed) {
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'toggle', sheet, id, completed })
+      });
+      setTimeout(loadData, 400);
+    }
+
+    async function deleteTask(sheet, id) {
+      try {
+        await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'delete', sheet: sheet, id: id })
+        });
+        setTimeout(loadData, 500);
+      } catch (err) {
+        console.error("Error al borrar:", err);
+      }
+    }
+
+    function checkDailyTasks() {
+      const todayStr = new Date().toISOString().split('T')[0];
+      let todayTasks = [];
+
+      const filterFn = (items, sheetName) => {
+        items.forEach(row => {
+          const [id, cat, task, start, end, done] = row;
+          if (!done && start && end) {
+            if (start <= todayStr && todayStr <= end) {
+              todayTasks.push({ id, cat, task, start, end, sheetName, rowId: id });
+            }
+          }
+        });
+      };
+
+      filterFn(globalData.suhaila, 'SUHAILA');
+      filterFn(globalData.casa, 'CASA');
+
+      todayTasks.sort((a, b) => b.rowId - a.rowId);
+
+      if (todayTasks.length > 0) {
+        const modalList = document.getElementById('dailyTaskList');
+        modalList.innerHTML = '';
+        todayTasks.forEach(t => {
+          const li = document.createElement('li');
+          li.className = 'task-item';
+          li.innerHTML = `
+            <div>
+              <span class="task-category">[${t.sheetName}] ${t.cat || 'General'}</span>
+              <div class="task-title" style="margin-top: 5px;">${t.task}</div>
+            </div>
+          `;
+          modalList.appendChild(li);
+        });
+        document.getElementById('dailyModal').classList.add('show');
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('dailyModal').classList.remove('show');
+    }
+
+    // Reconocimiento de Voz
+    let recognition;
+    let isListening = false;
+
+    function toggleVoiceRecognition() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("Tu navegador no soporta reconocimiento de voz.");
+        return;
+      }
+
+      if (isListening) {
+        recognition.stop();
+        return;
+      }
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'es-ES';
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        isListening = true;
+        document.getElementById('micBtn').classList.add('listening');
+      };
+
+      recognition.onend = () => {
+        isListening = false;
+        document.getElementById('micBtn').classList.remove('listening');
+      };
+
+      recognition.onresult = async (event) => {
+        const text = event.results[0][0].transcript.toLowerCase();
+        await processVoiceCommand(text);
+      };
+
+      recognition.start();
+    }
+
+    async function processVoiceCommand(text) {
+      let sheet = "SUHAILA";
+      if (text.includes("casa")) sheet = "CASA";
+      if (text.includes("recordatorio")) sheet = "Recordatorios";
+
+      let category = "General";
+      if (text.includes("baile")) category = "Baile";
+      if (text.includes("cole") || text.includes("colegio")) category = "Cole";
+      if (text.includes("limpieza")) category = "Limpieza";
+      if (text.includes("compra")) category = "Compra";
+
+      const days = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+      let targetDate = new Date();
+
+      days.forEach((day, idx) => {
+        if (text.includes(day)) {
+          let distance = (idx + 7 - targetDate.getDay()) % 7;
+          if (distance === 0) distance = 7;
+          targetDate.setDate(targetDate.getDate() + distance);
+        }
+      });
+
+      const startDateStr = targetDate.toISOString().split('T')[0];
+      let endDateObj = new Date(targetDate);
+      endDateObj.setDate(endDateObj.getDate() + 1);
+      const endDateStr = endDateObj.toISOString().split('T')[0];
+
+      let cleanTask = text
+        .replace(/añade|agregar|pon|en|a|para|el|la|categoría|casa|suhaila|recordatorio|baile|cole|limpieza|compra|lunes|martes|miércoles|jueves|viernes|sábado|domingo/g, "")
+        .trim();
+
+      if (!cleanTask) cleanTask = "Tarea por voz";
+
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ 
+          action: 'add', 
+          sheet, 
+          category, 
+          item: cleanTask, 
+          startDate: startDateStr, 
+          endDate: endDateStr 
+        })
+      });
+
+      speak(`Tarea añadida a ${sheet}`);
+      setTimeout(loadData, 500);
+    }
+
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-ES';
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
