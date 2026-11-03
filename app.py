@@ -113,4 +113,48 @@ def gestionar_seccion(categoria):
 
   with st.form(key=f"form_{categoria}"):
     titulo = st.text_input("Nuevo evento / tarea / recordatorio")
-    fecha
+    fecha_hora = st.text_input(
+        "Fecha y Hora (Ej: 2026-11-03 17:15)",
+        value=ahora_espana.strftime("%Y-%m-%d %H:%M"),
+    )
+    submitted = st.form_submit_button("Programar Evento")
+
+    if submitted and titulo:
+      try:
+        supabase.table("tasks").insert({
+            "title": titulo,
+            "category": categoria,
+            "datetime": fecha_hora,
+            "status": "pending",
+        }).execute()
+        st.success(f"¡Guardado en {categoria}!")
+        st.rerun()
+      except Exception as e:
+        st.error(f"Error al guardar: {e}")
+
+  st.markdown("### Listado Activo")
+  try:
+    res = (
+        supabase.table("tasks")
+        .select("*")
+        .eq("category", categoria)
+        .execute()
+    )
+    items = res.data if res.data else []
+
+    if not items:
+      st.info(f"No hay registros en {categoria}.")
+    for row in items:
+      col1, col2 = st.columns([4, 1])
+      with col1:
+        st.markdown(
+            f"📌 **{row['title']}**<br>⏰ `{row['datetime']}`",
+            unsafe_allow_html=True,
+        )
+      with col2:
+        if st.button("Borrar", key=f"del_{row['id']}"):
+          supabase.table("tasks").delete().eq("id", row["id"]).execute()
+          st.rerun()
+      st.markdown("---")
+  except Exception as e:
+    st.error(f"Error al cargar datos: {e}")
