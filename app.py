@@ -58,15 +58,18 @@ ahora_espana = datetime.now(ZoneInfo("Europe/Madrid"))
 fecha_hoy_str = ahora_espana.strftime("%Y-%m-%d")
 
 
-# ================= FUNCIÓN CALLMEBOT =================
-def enviar_aviso_callmebot(mensaje, usuario, apikey):
+# ================= FUNCIÓN CALLMEBOT CON DIAGNÓSTICO =================
+def enviar_aviso_callmebot(mensaje, telefono, apikey):
   url = "https://api.callmebot.com/telegram/get.php"
-  params = {"phone": usuario, "text": mensaje, "apikey": apikey}
+  params = {"phone": telefono, "text": mensaje, "apikey": apikey}
   try:
     response = requests.get(url, params=params)
-    return response.status_code == 200
-  except Exception:
-    return False
+    if response.status_code == 200:
+      return True, "OK"
+    else:
+      return False, f"HTTP {response.status_code}: {response.text}"
+  except Exception as e:
+    return False, str(e)
 
 
 # ================= INTERFAZ PRINCIPAL =================
@@ -173,7 +176,8 @@ with tab3:
 with tab4:
   st.subheader("⏰ Alarmas, Recordatorios y Telegram")
 
-  tel_input = "@Jossee93"
+  # Teléfono limpio obligatorio para CallMeBot
+  tel_input = "34662294769"
   apikey_input = "14.93"
 
   st.markdown("### Alarmas Programadas")
@@ -195,17 +199,19 @@ with tab4:
         if st.button("📲 Enviar Telegram", key=f"tg_{row['id']}"):
           texto = (
               f"🚨 *RECORDATORIO MYHOME*\n• [{row.get('category')}]"
-              f" {row.get('title')}\n⏰ Fecha: {row.get('datetime')}"
+              f" {row.get('title')}\n⏰ Fecha: {row.get('datetime')}`"
           )
-          exito = enviar_aviso_callmebot(texto, tel_input, apikey_input)
+          exito, detalle = enviar_aviso_callmebot(
+              texto, tel_input, apikey_input
+          )
           if exito:
             st.success("¡Enviado!")
           else:
-            st.error("Fallo al enviar.")
+            st.error(f"Fallo al enviar: {detalle}")
       with col3:
         if st.button("Borrar", key=f"del_alarm_{row['id']}"):
           supabase.table("tasks").delete().eq("id", row["id"]).execute()
           st.rerun()
       st.markdown("---")
   except Exception as e:
-    st.error(f"Error al cargar alarmas: {e}")
+    st.error(f"Error al cargar
