@@ -1,318 +1,235 @@
-import datetime
-from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
+import requests
 import streamlit as st
 from supabase import create_client
 
 # ================= CONFIGURACIÓN DE SUPABASE =================
 SUPABASE_URL = "https://ruevjfgysrdariugzebm.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1ZXZqZmd5c3JkYXJpdWd6ZWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1NjU0NDMsImV4cCI6MjEwOTE0MTQ0M30.5KtT8V0AmWwdvY335_zDwwkWIBSiMHEshXALkASo7dA"
-
+SUPABASE_KEY = (
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1ZXZqZmd5c3JkYXJpdWd6ZWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1NjU0NDMsImV4cCI6MjEwOTE0MTQ0M30.5KtT8V0AmWwdvY335_zDwwkWIBSiMHEshXALkASo7dA"
+)
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ================= CONFIGURACIÓN DE LA PÁGINA =================
 st.set_page_config(
-    page_title="JARVIS Command Center",
-    page_icon="⚡",
+    page_title="MyHome Command Center",
+    page_icon="🏠",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
-st.markdown("""
+# ================= ESTILOS CSS & FUENTE ORBITRON =================
+st.markdown(
+    """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Inter:wght@300;400;600&display=swap');
 
-    .stApp {
-        background: linear-gradient(135deg, #030712 0%, #0d1b2a 100%);
-        color: #f0f4f8;
+    html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
+        background-color: #0b0f19;
+        color: #e2e8f0;
     }
-    h1, h2, h3, .metric-container {
-        font-family: 'Orbitron', sans-serif !important;
-    }
-    h1 {
-        color: #00f2fe !important;
-        text-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
-        font-weight: 800;
-        letter-spacing: 2px;
-    }
-    /* Estilo para los botones principales grandes tipo tarjeta */
-    .stButton>button {
-        background: linear-gradient(135deg, #0d1b2a, #1b263b);
-        color: #00f2fe;
-        font-weight: 700;
-        border: 1px solid rgba(0, 242, 254, 0.4);
-        border-radius: 12px;
-        padding: 0.9rem 1rem;
-        width: 100%;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+
+    h1, h2, h3, .brand-title {
         font-family: 'Orbitron', sans-serif;
+        letter-spacing: 1px;
+    }
+
+    .stButton>button {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: #38bdf8;
+        border: 1px solid #38bdf8;
+        font-family: 'Orbitron', sans-serif;
+        border-radius: 8px;
         transition: all 0.3s ease;
     }
+
     .stButton>button:hover {
-        background: linear-gradient(135deg, #00f2fe, #4facfe);
-        color: #030712;
-        box-shadow: 0 0 20px rgba(0, 242, 254, 0.6);
-        border-color: #00f2fe;
-        transform: translateY(-2px);
-    }
-    .task-card {
-        background: rgba(13, 27, 42, 0.85);
-        border: 1px solid rgba(0, 242, 254, 0.25);
-        padding: 16px;
-        border-radius: 12px;
-        margin-bottom: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-    }
-    div[data-testid="metric-container"] {
-        background: rgba(0, 242, 254, 0.05);
-        border: 1px solid rgba(0, 242, 254, 0.2);
-        padding: 12px;
-        border-radius: 10px;
+        background: #38bdf8;
+        color: #0f172a;
+        box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
     }
     </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
-# Control de la sección activa
-if "active_module" not in st.session_state:
-    st.session_state["active_module"] = "SUHAILA"
+# ================= HORA LOCAL ESPAÑA =================
+ahora_espana = datetime.now(ZoneInfo("Europe/Madrid"))
+fecha_hoy_str = ahora_espana.strftime("%Y-%m-%d")
 
-col_title, col_clock = st.columns([3, 1])
-with col_title:
-    st.markdown("<h1>⚡ JARVIS COMMAND CENTER</h1>", unsafe_allow_html=True)
-with col_clock:
-    current_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    st.markdown(f"<p style='text-align: right; color: #00f2fe; font-family: Orbitron; font-size: 1.1rem;'>{current_time}</p>", unsafe_allow_html=True)
 
+# ================= FUNCIÓN CALLMEBOT =================
+def enviar_aviso_callmebot(mensaje, telefono, apikey):
+  mensaje_codificado = requests.utils.quote(mensaje)
+  url = f"https://api.callmebot.com/telegram/get.php?phone={telefono}&text={mensaje_codificado}&apikey={apikey}"
+  try:
+    response = requests.get(url)
+    return response.status_code == 200
+  except Exception:
+    return False
+
+
+# ================= VENTANA EMERGENTE (POP-UP) PARA HOY =================
+@st.dialog("🚨 MyHome: Alertas del Día (Suhaila & Casa)")
+def mostrar_modal_hoy(tareas_hoy):
+  st.write(
+      "Aquí tienes los pendientes programados para hoy en **Suhaila** y"
+      " **Casa**:"
+  )
+  for tarea in tareas_hoy:
+    st.markdown(
+        f"🔹 **[{tarea.get('category')}]** {tarea.get('title')} — ⏰"
+        f" {tarea.get('datetime')}"
+    )
+
+  if st.button("Entrar a MyHome"):
+    st.rerun()
+
+
+def verificar_alertas_diarias():
+  try:
+    response = (
+        supabase.table("tasks")
+        .select("*")
+        .in_("category", ["Suhaila", "Casa"])
+        .execute()
+    )
+    tareas = response.data if response.data else []
+    tareas_hoy = [
+        t for t in tareas if t.get("datetime", "").startswith(fecha_hoy_str)
+    ]
+
+    if "modal_visto" not in st.session_state:
+      if tareas_hoy:
+        mostrar_modal_hoy(tareas_hoy)
+      st.session_state.modal_visto = True
+  except Exception as e:
+    st.error(f"Error al conectar con la base de datos: {e}")
+
+
+# Ejecutar verificación de pop-up al cargar
+verificar_alertas_diarias()
+
+# ================= INTERFAZ PRINCIPAL =================
+st.markdown(
+    "<h1 style='text-align: center; color: #38bdf8;'>🏠 MYHOME COMMAND"
+    " CENTER</h1>",
+    unsafe_allow_html=True,
+)
+st.markdown(
+    f"<p style='text-align: center; color: #94a3b8;'>Hora local actual:"
+    f" {ahora_espana.strftime('%d/%m/%Y %H:%M')}</p>",
+    unsafe_allow_html=True,
+)
 st.markdown("---")
 
-# Tarjetas / Botones de Navegación Superiores
-m1, m2, m3 = st.columns(3)
-with m1:
-    if st.button("👩‍👧 MÓDULO SUHAILA"):
-        st.session_state["active_module"] = "SUHAILA"
-with m2:
-    if st.button("🏠 MÓDULO CASA"):
-        st.session_state["active_module"] = "CASA"
-with m3:
-    if st.button("⏰ RECORDATORIOS"):
-        st.session_state["active_module"] = "RECORDATORIOS"
+# Pestañas de navegación
+tab1, tab2, tab3, tab4 = st.tabs(
+    ["📋 Suhaila", "🏠 Casa", "🌐 General", "⏰ Alarmas y Recordatorios"]
+)
 
-st.markdown("<br>", unsafe_allow_html=True)
+# Función genérica para mostrar y gestionar tareas por categoría
+def gestionar_seccion(categoria):
+  st.subheader(f"Gestión de {categoria}")
 
-def fetch_data(table_name):
-    response = supabase.table(table_name).select("*").order("id", desc=True).execute()
-    return response.data
+  with st.form(key=f"form_{categoria}"):
+    titulo = st.text_input("Nuevo evento / tarea / recordatorio")
+    fecha_hora = st.text_input(
+        "Fecha y Hora (Ej: 2026-11-03 17:15)",
+        value=ahora_espana.strftime("%Y-%m-%d %H:%M"),
+    )
+    submitted = st.form_submit_button("Programar Evento")
 
-def add_task(table_name, data_dict):
-    supabase.table(table_name).insert(data_dict).execute()
+    if submitted and titulo:
+      try:
+        supabase.table("tasks").insert({
+            "title": titulo,
+            "category": categoria,
+            "datetime": fecha_hora,
+            "status": "pending",
+        }).execute()
+        st.success(f"¡Guardado en {categoria}!")
+        st.rerun()
+      except Exception as e:
+        st.error(f"Error al guardar: {e}")
 
-def update_task(table_name, task_id, update_dict):
-    supabase.table(table_name).update(update_dict).eq("id", task_id).execute()
+  st.markdown("### Listado Activo")
+  try:
+    res = (
+        supabase.table("tasks")
+        .select("*")
+        .eq("category", categoria)
+        .order("datetime")
+        .execute()
+    )
+    items = res.data if res.data else []
 
-def delete_task(table_name, task_id):
-    supabase.table(table_name).delete().eq("id", task_id).execute()
+    if not items:
+      st.info(f"No hay registros en {categoria}.")
+    for row in items:
+      col1, col2 = st.columns([4, 1])
+      with col1:
+        st.markdown(f"📌 **{row['title']}**<br>⏰ `{row['datetime']}`", unsafe_allow_html=True)
+      with col2:
+        if st.button("Borrar", key=f"del_{row['id']}"):
+          supabase.table("tasks").delete().eq("id", row['id']).execute()
+          st.rerun()
+      st.markdown("---")
+  except Exception as e:
+    st.error(f"Error al cargar datos: {e}")
 
-def render_kpis(data):
-    total = len(data)
-    completadas = sum(1 for x in data if x.get("completed", False))
-    pendientes = total - completadas
-    porcentaje = int((completadas / total * 100) if total > 0 else 0)
 
-    k1, k2, k3, k4 = st.columns(4)
-    k1.metric("📊 Total Tareas", total)
-    k2.metric("⏳ Pendientes", pendientes)
-    k3.metric("✅ Completadas", completadas)
-    k4.metric("📈 Progreso", f"{porcentaje}%")
-    st.markdown("<br>", unsafe_allow_html=True)
+with tab1:
+  gestionar_seccion("Suhaila")
 
-# ================= MÓDULO SUHAILA =================
-if st.session_state["active_module"] == "SUHAILA":
-    st.subheader("// MÓDULO DE GESTIÓN: SUHAILA")
-    data_suh = fetch_data("suhaila")
-    render_kpis(data_suh)
+with tab2:
+  gestionar_seccion("Casa")
 
-    with st.expander("➕ Añadir Nueva Tarea / Actividad", expanded=False):
-        with st.form("form_suhaila", clear_on_submit=True):
-            col1, col2 = st.columns(2)
-            with col1:
-                cat = st.text_input("Categoría (ej: Baile, Cole)")
-                start_d = st.date_input("Fecha Inicio", value=date.today())
-            with col2:
-                task = st.text_input("Descripción de la Tarea")
-                end_d = st.date_input("Fecha Fin", value=date.today())
+with tab3:
+  gestionar_seccion("General")
 
-            submitted = st.form_submit_button("REGISTRAR EN SISTEMA")
-            if submitted and task:
-                add_task("suhaila", {
-                    "id": int(datetime.datetime.now().timestamp() * 1000),
-                    "category": cat or "General",
-                    "task": task,
-                    "start_date": str(start_d),
-                    "end_date": str(end_d),
-                    "completed": False
-                })
-                st.rerun()
+with tab4:
+  st.subheader("⏰ Alarmas, Recordatorios y Telegram")
 
-    f_col1, _ = st.columns([2, 2])
-    with f_col1:
-        filtro_estado = st.selectbox("Filtrar vista", ["Todas", "Pendientes", "Completadas"], key="f_suh")
+  with st.expander("⚙️ Configuración CallMeBot (Telegram)"):
+    tel_input = st.text_input("Tu Teléfono (ej: +34600000000)", value="")
+    apikey_input = st.text_input("Tu API Key de CallMeBot", value="")
 
-    st.markdown("### Registros Activos")
-    for row in data_suh:
-        if filtro_estado == "Pendientes" and row["completed"]:
-            continue
-        if filtro_estado == "Completadas" and not row["completed"]:
-            continue
+  st.markdown("### Alarmas Programadas")
+  try:
+    res = supabase.table("tasks").select("*").order("datetime").execute()
+    todas = res.data if res.data else []
 
-        edit_key = f"editing_suh_{row['id']}"
-        
-        with st.container():
-            st.markdown('<div class="task-card">', unsafe_allow_html=True)
-            c1, c2, c3, c4 = st.columns([0.08, 0.65, 0.13, 0.14])
-            with c1:
-                is_done = st.checkbox("", value=row["completed"], key=f"chk_suh_{row['id']}")
-                if is_done != row["completed"]:
-                    update_task("suhaila", row["id"], {"completed": is_done})
-                    st.rerun()
-            with c2:
-                style = "text-decoration: line-through; opacity: 0.4;" if row["completed"] else ""
-                st.markdown(
-                    f"<span style='background:rgba(0,242,254,0.15); color:#00f2fe; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:600;'>{row['category']}</span><br>"
-                    f"<span style='{style} font-weight:600; font-size:1.05rem; display:inline-block; margin-top:5px;'>{row['task']}</span><br>"
-                    f"<span style='font-size:0.8rem; color:#94a3b8;'>🗓️ {row['start_date']} ➔ {row['end_date']}</span>",
-                    unsafe_allow_html=True
-                )
-            with c3:
-                if st.button("✏️ Editar", key=f"edit_suh_btn_{row['id']}"):
-                    st.session_state[edit_key] = not st.session_state.get(edit_key, False)
-            with c4:
-                if st.button("🗑️ Borrar", key=f"del_suh_{row['id']}"):
-                    delete_task("suhaila", row["id"])
-                    st.rerun()
-
-            if st.session_state.get(edit_key, False):
-                with st.form(key=f"form_edit_suh_{row['id']}"):
-                    new_task_txt = st.text_input("Modificar Tarea", value=row["task"])
-                    new_cat_txt = st.text_input("Modificar Categoría", value=row["category"])
-                    if st.form_submit_button("Guardar Cambios"):
-                        update_task("suhaila", row["id"], {"task": new_task_txt, "category": new_cat_txt})
-                        st.session_state[edit_key] = False
-                        st.rerun()
-
-            st.markdown('</div>', unsafe_allow_html=True)
-
-# ================= MÓDULO CASA =================
-elif st.session_state["active_module"] == "CASA":
-    st.subheader("// MÓDULO DE GESTIÓN: CASA")
-    data_casa = fetch_data("casa")
-    render_kpis(data_casa)
-
-    with st.expander("➕ Añadir Nueva Tarea Doméstica", expanded=False):
-        with st.form("form_casa", clear_on_submit=True):
-            col1, col2 = st.columns(2)
-            with col1:
-                cat_c = st.text_input("Categoría (ej: Limpieza)", key="cat_c")
-                start_c = st.date_input("Fecha Inicio", value=date.today(), key="start_c")
-            with col2:
-                task_c = st.text_input("Descripción de la Tarea", key="task_c")
-                end_c = st.date_input("Fecha Fin", value=date.today(), key="end_c")
-
-            submitted_c = st.form_submit_button("REGISTRAR EN SISTEMA")
-            if submitted_c and task_c:
-                add_task("casa", {
-                    "id": int(datetime.datetime.now().timestamp() * 1000),
-                    "category": cat_c or "General",
-                    "task": task_c,
-                    "start_date": str(start_c),
-                    "end_date": str(end_c),
-                    "completed": False
-                })
-                st.rerun()
-
-    f_col1_c, _ = st.columns([2, 2])
-    with f_col1_c:
-        filtro_estado_c = st.selectbox("Filtrar vista", ["Todas", "Pendientes", "Completadas"], key="f_cas")
-
-    st.markdown("### Registros Activos")
-    for row in data_casa:
-        if filtro_estado_c == "Pendientes" and row["completed"]:
-            continue
-        if filtro_estado_c == "Completadas" and not row["completed"]:
-            continue
-
-        edit_key_c = f"editing_cas_{row['id']}"
-
-        with st.container():
-            st.markdown('<div class="task-card">', unsafe_allow_html=True)
-            c1, c2, c3, c4 = st.columns([0.08, 0.65, 0.13, 0.14])
-            with c1:
-                is_done_c = st.checkbox("", value=row["completed"], key=f"chk_cas_{row['id']}")
-                if is_done_c != row["completed"]:
-                    update_task("casa", row["id"], {"completed": is_done_c})
-                    st.rerun()
-            with c2:
-                style = "text-decoration: line-through; opacity: 0.4;" if row["completed"] else ""
-                st.markdown(
-                    f"<span style='background:rgba(0,242,254,0.15); color:#00f2fe; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:600;'>{row['category']}</span><br>"
-                    f"<span style='{style} font-weight:600; font-size:1.05rem; display:inline-block; margin-top:5px;'>{row['task']}</span><br>"
-                    f"<span style='font-size:0.8rem; color:#94a3b8;'>🗓️ {row['start_date']} ➔ {row['end_date']}</span>",
-                    unsafe_allow_html=True
-                )
-            with c3:
-                if st.button("✏️ Editar", key=f"edit_cas_btn_{row['id']}"):
-                    st.session_state[edit_key_c] = not st.session_state.get(edit_key_c, False)
-            with c4:
-                if st.button("🗑️ Borrar", key=f"del_cas_{row['id']}"):
-                    delete_task("casa", row["id"])
-                    st.rerun()
-
-            if st.session_state.get(edit_key_c, False):
-                with st.form(key=f"form_edit_cas_{row['id']}"):
-                    new_task_txt_c = st.text_input("Modificar Tarea", value=row["task"])
-                    new_cat_txt_c = st.text_input("Modificar Categoría", value=row["category"])
-                    if st.form_submit_button("Guardar Cambios"):
-                        update_task("casa", row["id"], {"task": new_task_txt_c, "category": new_cat_txt_c})
-                        st.session_state[edit_key_c] = False
-                        st.rerun()
-
-            st.markdown('</div>', unsafe_allow_html=True)
-
-# ================= MÓDULO RECORDATORIOS =================
-elif st.session_state["active_module"] == "RECORDATORIOS":
-    st.subheader("// MÓDULO DE ALARMAS Y RECORDATORIOS")
-    data_rec = fetch_data("recordatorios")
-
-    with st.expander("➕ Programar Nuevo Evento / Alarma", expanded=False):
-        with st.form("form_rec", clear_on_submit=True):
-            r_title = st.text_input("Título del Recordatorio")
-            r_datetime = st.datetime_input("Fecha y Hora del Evento", value=datetime.datetime.now())
-
-            submitted_r = st.form_submit_button("PROGRAMAR ALARMA")
-            if submitted_r and r_title:
-                add_task("recordatorios", {
-                    "id": int(datetime.datetime.now().timestamp() * 1000),
-                    "title": r_title,
-                    "datetime": r_datetime.isoformat(),
-                    "notified_7d": False,
-                    "notified_1d": False,
-                    "last_daily_notice": ""
-                })
-                st.rerun()
-
-    st.markdown("### Alarmas Programadas")
-    for row in data_rec:
-        with st.container():
-            st.markdown('<div class="task-card">', unsafe_allow_html=True)
-            c1, c2 = st.columns([0.85, 0.15])
-            with c1:
-                dt_formatted = datetime.datetime.fromisoformat(row["datetime"]).strftime("%d/%m/%Y %H:%M") if row["datetime"] else ""
-                st.markdown(
-                    f"<span style='font-weight:600; font-size:1.1rem; color:#f0f4f8;'>{row['title']}</span><br>"
-                    f"<span style='font-size:0.9rem; color:#00f2fe; font-family:Orbitron;'>⏰ {dt_formatted}</span>",
-                    unsafe_allow_html=True
-                )
-            with c2:
-                if st.button("🗑️ Borrar", key=f"del_rec_{row['id']}"):
-                    delete_task("recordatorios", row["id"])
-                    st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
+    if not todas:
+      st.info("No hay alarmas programadas.")
+    for row in todas:
+      col1, col2, col3 = st.columns([3, 1, 1])
+      with col1:
+        st.markdown(
+            f"🔔 **[{row.get('category')}] {row.get('title')}**<br>⏰"
+            f" `{row.get('datetime')}`",
+            unsafe_allow_html=True,
+        )
+      with col2:
+        if tel_input and apikey_input:
+          if st.button("📲 Enviar Telegram", key=f"tg_{row['id']}"):
+            texto = (
+                f"🚨 *RECORDATORIO MYHOME*\n• [{row.get('category')}]"
+                f" {row.get('title')}\n⏰ Fecha: {row.get('datetime')}"
+            )
+            exito = enviar_aviso_callmebot(texto, tel_input, apikey_input)
+            if exito:
+              st.success("¡Enviado!")
+            else:
+              st.error("Fallo al enviar.")
+        else:
+          st.caption("Configura tus datos arriba para enviar.")
+      with col3:
+        if st.button("Borrar", key=f"del_alarm_{row['id']}"):
+          supabase.table("tasks").delete().eq("id", row['id']).execute()
+          st.rerun()
+      st.markdown("---")
+  except Exception as e:
+    st.error(f"Error al cargar alarmas: {e}")
