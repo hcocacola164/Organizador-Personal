@@ -60,12 +60,12 @@ ahora_espana = datetime.now(ZoneInfo("Europe/Madrid"))
 fecha_hoy_str = ahora_espana.strftime("%Y-%m-%d")
 
 
-# ================= FUNCIÓN CALLMEBOT =================
+# ================= FUNCIÓN CALLMEBOT CORREGIDA =================
 def enviar_aviso_callmebot(mensaje, telefono, apikey):
-  mensaje_codificado = requests.utils.quote(mensaje)
-  url = f"https://api.callmebot.com/telegram/get.php?phone={telefono}&text={mensaje_codificado}&apikey={apikey}"
+  url = "https://api.callmebot.com/telegram/get.php"
+  params = {"phone": telefono, "text": mensaje, "apikey": apikey}
   try:
-    response = requests.get(url)
+    response = requests.get(url, params=params)
     return response.status_code == 200
   except Exception:
     return False
