@@ -62,8 +62,9 @@ fecha_hoy_str = ahora_espana.strftime("%Y-%m-%d")
 
 # ================= FUNCIÓN CALLMEBOT CORREGIDA =================
 def enviar_aviso_callmebot(mensaje, telefono, apikey):
+  telefono_limpio = telefono.replace("+", "")
   url = "https://api.callmebot.com/telegram/get.php"
-  params = {"phone": telefono, "text": mensaje, "apikey": apikey}
+  params = {"phone": telefono_limpio, "text": mensaje, "apikey": apikey}
   try:
     response = requests.get(url, params=params)
     return response.status_code == 200
@@ -171,10 +172,13 @@ def gestionar_seccion(categoria):
     for row in items:
       col1, col2 = st.columns([4, 1])
       with col1:
-        st.markdown(f"📌 **{row['title']}**<br>⏰ `{row['datetime']}`", unsafe_allow_html=True)
+        st.markdown(
+            f"📌 **{row['title']}**<br>⏰ `{row['datetime']}`",
+            unsafe_allow_html=True,
+        )
       with col2:
         if st.button("Borrar", key=f"del_{row['id']}"):
-          supabase.table("tasks").delete().eq("id", row['id']).execute()
+          supabase.table("tasks").delete().eq("id", row["id"]).execute()
           st.rerun()
       st.markdown("---")
   except Exception as e:
@@ -193,8 +197,8 @@ with tab3:
 with tab4:
   st.subheader("⏰ Alarmas, Recordatorios y Telegram")
 
-  # Datos ya configurados permanentemente
-  tel_input = "+34662294769"
+  # Credenciales configuradas permanentemente
+  tel_input = "34662294769"
   apikey_input = "14.93"
 
   st.markdown("### Alarmas Programadas")
@@ -225,7 +229,7 @@ with tab4:
             st.error("Fallo al enviar.")
       with col3:
         if st.button("Borrar", key=f"del_alarm_{row['id']}"):
-          supabase.table("tasks").delete().eq("id", row['id']).execute()
+          supabase.table("tasks").delete().eq("id", row["id"]).execute()
           st.rerun()
       st.markdown("---")
   except Exception as e:
