@@ -130,7 +130,7 @@ tab1, tab2, tab3, tab4 = st.tabs(
     ["📋 Suhaila", "🏠 Casa", "🌐 General", "⏰ Alarmas y Recordatorios"]
 )
 
-# Función genérica para mostrar y gestionar tareas por categoría
+
 def gestionar_seccion(categoria):
   st.subheader(f"Gestión de {categoria}")
 
@@ -193,9 +193,9 @@ with tab3:
 with tab4:
   st.subheader("⏰ Alarmas, Recordatorios y Telegram")
 
-  with st.expander("⚙️ Configuración CallMeBot (Telegram)"):
-    tel_input = st.text_input("Tu Teléfono (ej: +34600000000)", value="")
-    apikey_input = st.text_input("Tu API Key de CallMeBot", value="")
+  # Datos ya configurados permanentemente
+  tel_input = "+34662294769"
+  apikey_input = "14.93"
 
   st.markdown("### Alarmas Programadas")
   try:
@@ -213,19 +213,16 @@ with tab4:
             unsafe_allow_html=True,
         )
       with col2:
-        if tel_input and apikey_input:
-          if st.button("📲 Enviar Telegram", key=f"tg_{row['id']}"):
-            texto = (
-                f"🚨 *RECORDATORIO MYHOME*\n• [{row.get('category')}]"
-                f" {row.get('title')}\n⏰ Fecha: {row.get('datetime')}"
-            )
-            exito = enviar_aviso_callmebot(texto, tel_input, apikey_input)
-            if exito:
-              st.success("¡Enviado!")
-            else:
-              st.error("Fallo al enviar.")
-        else:
-          st.caption("Configura tus datos arriba para enviar.")
+        if st.button("📲 Enviar Telegram", key=f"tg_{row['id']}"):
+          texto = (
+              f"🚨 *RECORDATORIO MYHOME*\n• [{row.get('category')}]"
+              f" {row.get('title')}\n⏰ Fecha: {row.get('datetime')}"
+          )
+          exito = enviar_aviso_callmebot(texto, tel_input, apikey_input)
+          if exito:
+            st.success("¡Enviado!")
+          else:
+            st.error("Fallo al enviar.")
       with col3:
         if st.button("Borrar", key=f"del_alarm_{row['id']}"):
           supabase.table("tasks").delete().eq("id", row['id']).execute()
