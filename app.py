@@ -6,9 +6,7 @@ from supabase import create_client
 
 # ================= CONFIGURACIÓN DE SUPABASE =================
 SUPABASE_URL = "https://ruevjfgysrdariugzebm.supabase.co"
-SUPABASE_KEY = (
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1ZXZqZmd5c3JkYXJpdWd6ZWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1NjU0NDMsImV4cCI6MjEwOTE0MTQ0M30.5KtT8V0AmWwdvY335_zDwwkWIBSiMHEshXALkASo7dA"
-)
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1ZXZqZmd5c3JkYXJpdWd6ZWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1NjU0NDMsImV4cCI6MjEwOTE0MTQ0M30.5KtT8V0AmWwdvY335_zDwwkWIBSiMHEshXALkASo7dA"
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ================= CONFIGURACIÓN DE LA PÁGINA =================
@@ -60,7 +58,7 @@ ahora_espana = datetime.now(ZoneInfo("Europe/Madrid"))
 fecha_hoy_str = ahora_espana.strftime("%Y-%m-%d")
 
 
-# ================= FUNCIÓN CALLMEBOT CON USUARIO =================
+# ================= FUNCIÓN CALLMEBOT =================
 def enviar_aviso_callmebot(mensaje, usuario, apikey):
   url = "https://api.callmebot.com/telegram/get.php"
   params = {"phone": usuario, "text": mensaje, "apikey": apikey}
@@ -112,92 +110,4 @@ def verificar_alertas_diarias():
 # Ejecutar verificación de pop-up al cargar
 verificar_alertas_diarias()
 
-# ================= INTERFAZ PRINCIPAL =================
-st.markdown(
-    "<h1 style='text-align: center; color: #38bdf8;'>🏠 MYHOME COMMAND"
-    " CENTER</h1>",
-    unsafe_allow_html=True,
-)
-st.markdown(
-    f"<p style='text-align: center; color: #94a3b8;'>Hora local actual:"
-    f" {ahora_espana.strftime('%d/%m/%Y %H:%M')}</p>",
-    unsafe_allow_html=True,
-)
-st.markdown("---")
-
-# Pestañas de navegación
-tab1, tab2, tab3, tab4 = st.tabs(
-    ["📋 Suhaila", "🏠 Casa", "🌐 General", "⏰ Alarmas y Recordatorios"]
-)
-
-
-def gestionar_seccion(categoria):
-  st.subheader(f"Gestión de {categoria}")
-
-  with st.form(key=f"form_{categoria}"):
-    titulo = st.text_input("Nuevo evento / tarea / recordatorio")
-    fecha_hora = st.text_input(
-        "Fecha y Hora (Ej: 2026-11-03 17:15)",
-        value=ahora_espana.strftime("%Y-%m-%d %H:%M"),
-    )
-    submitted = st.form_submit_button("Programar Evento")
-
-    if submitted and titulo:
-      try:
-        supabase.table("tasks").insert({
-            "title": titulo,
-            "category": categoria,
-            "datetime": fecha_hora,
-            "status": "pending",
-        }).execute()
-        st.success(f"¡Guardado en {categoria}!")
-        st.rerun()
-      except Exception as e:
-        st.error(f"Error al guardar: {e}")
-
-  st.markdown("### Listado Activo")
-  try:
-    res = (
-        supabase.table("tasks")
-        .select("*")
-        .eq("category", categoria)
-        .order("datetime")
-        .execute()
-    )
-    items = res.data if res.data else []
-
-    if not items:
-      st.info(f"No hay registros en {categoria}.")
-    for row in items:
-      col1, col2 = st.columns([4, 1])
-      with col1:
-        st.markdown(
-            f"📌 **{row['title']}**<br>⏰ `{row['datetime']}`",
-            unsafe_allow_html=True,
-        )
-      with col2:
-        if st.button("Borrar", key=f"del_{row['id']}"):
-          supabase.table("tasks").delete().eq("id", row["id"]).execute()
-          st.rerun()
-      st.markdown("---")
-  except Exception as e:
-    st.error(f"Error al cargar datos: {e}")
-
-
-with tab1:
-  gestionar_seccion("Suhaila")
-
-with tab2:
-  gestionar_seccion("Casa")
-
-with tab3:
-  gestionar_seccion("General")
-
-with tab4:
-  st.subheader("⏰ Alarmas, Recordatorios y Telegram")
-
-  # Configurado con tu usuario y tu API key
-  tel_input = "@Jossee93"
-  apikey_input = "14.93"
-
-st.markdown("### Alarmas Programadas")
+# =
