@@ -58,10 +58,10 @@ ahora_espana = datetime.now(ZoneInfo("Europe/Madrid"))
 fecha_hoy_str = ahora_espana.strftime("%Y-%m-%d")
 
 
-# ================= FUNCIÓN CALLMEBOT CON DIAGNÓSTICO =================
-def enviar_aviso_callmebot(mensaje, telefono, apikey):
-  url = "https://api.callmebot.com/telegram/get.php"
-  params = {"phone": telefono, "text": mensaje, "apikey": apikey}
+# ================= FUNCIÓN CALLMEBOT OFICIAL =================
+def enviar_aviso_callmebot(mensaje, usuario, apikey):
+  url = "https://api.callmebot.com/text.php"
+  params = {"user": usuario, "text": mensaje, "apikey": apikey}
   try:
     response = requests.get(url, params=params)
     if response.status_code == 200:
@@ -176,7 +176,8 @@ with tab3:
 with tab4:
   st.subheader("⏰ Alarmas, Recordatorios y Telegram")
 
-  tel_input = "34662294769"
+  # Usuario de Telegram oficial y API Key
+  tel_input = "@Jossee93"
   apikey_input = "14.93"
 
   st.markdown("### Alarmas Programadas")
