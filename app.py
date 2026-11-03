@@ -200,4 +200,4 @@ with tab4:
   tel_input = "@Jossee93"
   apikey_input = "14.93"
 
-  st.markdown("### Alarmas Program
+st.markdown("### Alarmas Programadas")
