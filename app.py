@@ -7,7 +7,7 @@ from supabase import create_client
 # ================= CONFIGURACIÓN DE SUPABASE =================
 SUPABASE_URL = "https://ruevjfgysrdariugzebm.supabase.co"
 SUPABASE_KEY = (
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1ZXZqZmd5c3JkYXJpdWd6ZWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1NjU0NDMsImV4cCI6MjEwOTE0MTQ0M30.5KtT8V0AmWwdvY335_zDwwkWIBSiMHEshXALkASo7dA"
+    "eyJhbGciOiJIUzI1NiIsInI1cCI5..."
 )
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -60,11 +60,10 @@ ahora_espana = datetime.now(ZoneInfo("Europe/Madrid"))
 fecha_hoy_str = ahora_espana.strftime("%Y-%m-%d")
 
 
-# ================= FUNCIÓN CALLMEBOT CORREGIDA =================
-def enviar_aviso_callmebot(mensaje, telefono, apikey):
-  telefono_limpio = telefono.replace("+", "")
+# ================= FUNCIÓN CALLMEBOT CON USUARIO =================
+def enviar_aviso_callmebot(mensaje, usuario, apikey):
   url = "https://api.callmebot.com/telegram/get.php"
-  params = {"phone": telefono_limpio, "text": mensaje, "apikey": apikey}
+  params = {"phone": usuario, "text": mensaje, "apikey": apikey}
   try:
     response = requests.get(url, params=params)
     return response.status_code == 200
@@ -197,40 +196,8 @@ with tab3:
 with tab4:
   st.subheader("⏰ Alarmas, Recordatorios y Telegram")
 
-  # Credenciales configuradas permanentemente
-  tel_input = "34662294769"
+  # Configurado con tu usuario y tu API key
+  tel_input = "@Jossee93"
   apikey_input = "14.93"
 
-  st.markdown("### Alarmas Programadas")
-  try:
-    res = supabase.table("tasks").select("*").order("datetime").execute()
-    todas = res.data if res.data else []
-
-    if not todas:
-      st.info("No hay alarmas programadas.")
-    for row in todas:
-      col1, col2, col3 = st.columns([3, 1, 1])
-      with col1:
-        st.markdown(
-            f"🔔 **[{row.get('category')}] {row.get('title')}**<br>⏰"
-            f" `{row.get('datetime')}`",
-            unsafe_allow_html=True,
-        )
-      with col2:
-        if st.button("📲 Enviar Telegram", key=f"tg_{row['id']}"):
-          texto = (
-              f"🚨 *RECORDATORIO MYHOME*\n• [{row.get('category')}]"
-              f" {row.get('title')}\n⏰ Fecha: {row.get('datetime')}"
-          )
-          exito = enviar_aviso_callmebot(texto, tel_input, apikey_input)
-          if exito:
-            st.success("¡Enviado!")
-          else:
-            st.error("Fallo al enviar.")
-      with col3:
-        if st.button("Borrar", key=f"del_alarm_{row['id']}"):
-          supabase.table("tasks").delete().eq("id", row["id"]).execute()
-          st.rerun()
-      st.markdown("---")
-  except Exception as e:
-    st.error(f"Error al cargar alarmas: {e}")
+  st.markdown("### Alarmas Program
