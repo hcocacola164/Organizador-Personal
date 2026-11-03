@@ -69,45 +69,48 @@ def enviar_aviso_callmebot(mensaje, usuario, apikey):
     return False
 
 
-# ================= VENTANA EMERGENTE (POP-UP) PARA HOY =================
-@st.dialog("🚨 MyHome: Alertas del Día (Suhaila & Casa)")
-def mostrar_modal_hoy(tareas_hoy):
-  st.write(
-      "Aquí tienes los pendientes programados para hoy en **Suhaila** y"
-      " **Casa**:"
+# ================= INTERFAZ PRINCIPAL =================
+st.markdown(
+    "<h1 style='text-align: center; color: #38bdf8;'>🏠 MYHOME COMMAND"
+    " CENTER</h1>",
+    unsafe_allow_html=True,
+)
+st.markdown(
+    f"<p style='text-align: center; color: #94a3b8;'>Hora local actual:"
+    f" {ahora_espana.strftime('%d/%m/%Y %H:%M')}</p>",
+    unsafe_allow_html=True,
+)
+st.markdown("---")
+
+# Comprobación de alertas del día de forma segura
+try:
+  response = (
+      supabase.table("tasks")
+      .select("*")
+      .in_("category", ["Suhaila", "Casa"])
+      .execute()
   )
-  for tarea in tareas_hoy:
-    st.markdown(
-        f"🔹 **[{tarea.get('category')}]** {tarea.get('title')} — ⏰"
-        f" {tarea.get('datetime')}"
+  tareas = response.data if response.data else []
+  tareas_hoy = [
+      t for t in tareas if t.get("datetime", "").startswith(fecha_hoy_str)
+  ]
+  if tareas_hoy:
+    st.warning(
+        f"🚨 **Aviso diario:** Tienes {len(tareas_hoy)} tarea(s) programada(s)"
+        " para hoy en Suhaila o Casa."
     )
+except Exception:
+  pass
 
-  if st.button("Entrar a MyHome"):
-    st.rerun()
-
-
-def verificar_alertas_diarias():
-  try:
-    response = (
-        supabase.table("tasks")
-        .select("*")
-        .in_("category", ["Suhaila", "Casa"])
-        .execute()
-    )
-    tareas = response.data if response.data else []
-    tareas_hoy = [
-        t for t in tareas if t.get("datetime", "").startswith(fecha_hoy_str)
-    ]
-
-    if "modal_visto" not in st.session_state:
-      if tareas_hoy:
-        mostrar_modal_hoy(tareas_hoy)
-      st.session_state.modal_visto = True
-  except Exception as e:
-    st.error(f"Error al conectar con la base de datos: {e}")
+# Pestañas de navegación
+tab1, tab2, tab3, tab4 = st.tabs(
+    ["📋 Suhaila", "🏠 Casa", "🌐 General", "⏰ Alarmas y Recordatorios"]
+)
 
 
-# Ejecutar verificación de pop-up al cargar
-verificar_alertas_diarias()
+def gestionar_seccion(categoria):
+  st.subheader(f"Gestión de {categoria}")
 
-# =
+  with st.form(key=f"form_{categoria}"):
+    titulo = st.text_input("Nuevo evento / tarea / recordatorio")
+    fecha
