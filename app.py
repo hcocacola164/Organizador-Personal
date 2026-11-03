@@ -80,4 +80,137 @@ st.markdown(
 )
 st.markdown(
     f"<p style='text-align: center; color: #94a3b8;'>Hora local actual:"
-    f" {ahora_espana.strftime
+    f" {ahora_espana.strftime('%d/%m/%Y %H:%M')}</p>",
+    unsafe_allow_html=True,
+)
+st.markdown("---")
+
+# Comprobación de alertas del día de forma segura
+try:
+  response = (
+      supabase.table("tasks")
+      .select("*")
+      .in_("category", ["Suhaila", "Casa"])
+      .execute()
+  )
+  tareas = response.data if response.data else []
+  tareas_hoy = [
+      t for t in tareas if t.get("datetime", "").startswith(fecha_hoy_str)
+  ]
+  if tareas_hoy:
+    st.warning(
+        f"🚨 **Aviso diario:** Tienes {len(tareas_hoy)} tarea(s) programada(s)"
+        " para hoy en Suhaila o Casa."
+    )
+except Exception:
+  pass
+
+# Pestañas de navegación
+tab1, tab2, tab3, tab4 = st.tabs(
+    ["📋 Suhaila", "🏠 Casa", "🌐 General", "⏰ Alarmas y Recordatorios"]
+)
+
+
+def gestionar_seccion(categoria):
+  st.subheader(f"Gestión de {categoria}")
+
+  with st.form(key=f"form_{categoria}"):
+    titulo = st.text_input("Nuevo evento / tarea / recordatorio")
+    fecha_hora = st.text_input(
+        "Fecha y Hora (Ej: 2026-11-03 17:15)",
+        value=ahora_espana.strftime("%Y-%m-%d %H:%M"),
+    )
+    submitted = st.form_submit_button("Programar Evento")
+
+    if submitted and titulo:
+      try:
+        supabase.table("tasks").insert({
+            "title": titulo,
+            "category": categoria,
+            "datetime": fecha_hora,
+            "status": "pending",
+        }).execute()
+        st.success(f"¡Guardado en {categoria}!")
+        st.rerun()
+      except Exception as e:
+        st.error(f"Error al guardar: {e}")
+
+  st.markdown("### Listado Activo")
+  try:
+    res = (
+        supabase.table("tasks")
+        .select("*")
+        .eq("category", categoria)
+        .execute()
+    )
+    items = res.data if res.data else []
+
+    if not items:
+      st.info(f"No hay registros en {categoria}.")
+    for row in items:
+      col1, col2 = st.columns([4, 1])
+      with col1:
+        st.markdown(
+            f"📌 **{row['title']}**<br>⏰ `{row['datetime']}`",
+            unsafe_allow_html=True,
+        )
+      with col2:
+        if st.button("Borrar", key=f"del_{row['id']}"):
+          supabase.table("tasks").delete().eq("id", row["id"]).execute()
+          st.rerun()
+      st.markdown("---")
+  except Exception as e:
+    st.error(f"Error al cargar datos: {e}")
+
+
+# Renderizar contenido dentro de cada pestaña
+with tab1:
+  gestionar_seccion("Suhaila")
+
+with tab2:
+  gestionar_seccion("Casa")
+
+with tab3:
+  gestionar_seccion("General")
+
+with tab4:
+  st.subheader("⏰ Alarmas, Recordatorios y Telegram")
+
+  tel_input = "34662294769"
+  apikey_input = "14.93"
+
+  st.markdown("### Alarmas Programadas")
+  try:
+    res = supabase.table("tasks").select("*").execute()
+    todas = res.data if res.data else []
+
+    if not todas:
+      st.info("No hay alarmas programadas.")
+    for row in todas:
+      col1, col2, col3 = st.columns([3, 1, 1])
+      with col1:
+        st.markdown(
+            f"🔔 **[{row.get('category')}] {row.get('title')}**<br>⏰"
+            f" `{row.get('datetime')}`",
+            unsafe_allow_html=True,
+        )
+      with col2:
+        if st.button("📲 Enviar Telegram", key=f"tg_{row['id']}"):
+          texto = (
+              f"🚨 *RECORDATORIO MYHOME*\n• [{row.get('category')}]"
+              f" {row.get('title')}\n⏰ Fecha: {row.get('datetime')}"
+          )
+          exito, detalle = enviar_aviso_callmebot(
+              texto, tel_input, apikey_input
+          )
+          if exito:
+            st.success("¡Enviado!")
+          else:
+            st.error(f"Fallo al enviar: {detalle}")
+      with col3:
+        if st.button("Borrar", key=f"del_alarm_{row['id']}"):
+          supabase.table("tasks").delete().eq("id", row["id"]).execute()
+          st.rerun()
+      st.markdown("---")
+  except Exception as e:
+    st.error(f"Error al cargar alarmas: {e}")
