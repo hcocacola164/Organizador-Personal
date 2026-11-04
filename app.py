@@ -116,18 +116,23 @@ def gestionar_seccion(categoria):
 
   with st.form(key=f"form_{categoria}"):
     titulo = st.text_input("Nuevo evento / tarea / recordatorio")
-    fecha_hora = st.text_input(
-        "Fecha y Hora (Ej: 2026-11-03 17:15)",
-        value=ahora_espana.strftime("%Y-%m-%d %H:%M"),
-    )
+
+    # Selector tipo calendario y rueda de hora estilo alarma
+    col_f, col_h = st.columns(2)
+    with col_f:
+      f_sel = st.date_input("Fecha del evento", value=ahora_espana.date())
+    with col_h:
+      h_sel = st.time_input("Hora del evento", value=ahora_espana.time())
+
     submitted = st.form_submit_button("Programar Evento")
 
     if submitted and titulo:
+      fecha_hora_str = f"{f_sel} {h_sel.strftime('%H:%M')}"
       try:
         supabase.table("tasks").insert({
             "title": titulo,
             "category": categoria,
-            "datetime": fecha_hora,
+            "datetime": fecha_hora_str,
             "status": "pending",
         }).execute()
         st.success(f"¡Guardado en {categoria}!")
@@ -147,6 +152,7 @@ def gestionar_seccion(categoria):
 
     if not items:
       st.info(f"No hay registros en {categoria}.")
+
     for row in items:
       col1, col2 = st.columns([4, 1])
       with col1:
@@ -158,6 +164,51 @@ def gestionar_seccion(categoria):
         if st.button("Borrar", key=f"del_{row['id']}"):
           supabase.table("tasks").delete().eq("id", row["id"]).execute()
           st.rerun()
+
+      # Bloque desplegable de edición para cada tarea
+      with st.expander(f"✏️ Editar '{row['title']}'"):
+        nuevo_titulo = st.text_input(
+            "Modificar Título", value=row["title"], key=f"t_edit_{row['id']}"
+        )
+        nueva_cat = st.selectbox(
+            "Modificar Categoría",
+            ["Suhaila", "Casa", "General"],
+            index=["Suhaila", "Casa", "General"].index(
+                row.get("category", "General")
+            )
+            if row.get("category") in ["Suhaila", "Casa", "General"]
+            else 2,
+            key=f"c_edit_{row['id']}",
+        )
+
+        try:
+          dt_parse = datetime.strptime(row["datetime"], "%Y-%m-%d %H:%M")
+        except:
+          dt_parse = ahora_espana
+
+        col_ef, col_eh = st.columns(2)
+        with col_ef:
+          nf_sel = st.date_input(
+              "Nueva Fecha", value=dt_parse.date(), key=f"f_edit_{row['id']}"
+          )
+        with col_eh:
+          nh_sel = st.time_input(
+              "Nueva Hora", value=dt_parse.time(), key=f"h_edit_{row['id']}"
+          )
+
+        if st.button("💾 Guardar Cambios", key=f"save_edit_{row['id']}"):
+          nuevo_dt_str = f"{nf_sel} {nh_sel.strftime('%H:%M')}"
+          try:
+            supabase.table("tasks").update({
+                "title": nuevo_titulo,
+                "category": nueva_cat,
+                "datetime": nuevo_dt_str,
+            }).eq("id", row["id"]).execute()
+            st.success("¡Tarea actualizada con éxito!")
+            st.rerun()
+          except Exception as e:
+            st.error(f"Error al actualizar: {e}")
+
       st.markdown("---")
   except Exception as e:
     st.error(f"Error al cargar datos: {e}")
@@ -176,7 +227,6 @@ with tab3:
 with tab4:
   st.subheader("⏰ Alarmas, Recordatorios y Telegram")
 
-  # Usuario de Telegram oficial y API Key
   tel_input = "@Jossee93"
   apikey_input = "14.93"
 
